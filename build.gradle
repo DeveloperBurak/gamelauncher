@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'org.openjfx.javafxplugin' version '0.0.7'
     id 'application'
+    id "com.github.johnrengelman.shadow" version "4.0.4"
 }
 
 application {
@@ -10,6 +11,7 @@ application {
 
 apply plugin: 'java'
 apply plugin: 'org.openjfx.javafxplugin'
+apply plugin: 'com.github.johnrengelman.shadow'
 javafx {
     modules = [ 'javafx.controls','javafx.fxml','javafx.graphics','javafx.swing','javafx.base' ]
 }
@@ -20,23 +22,14 @@ version '0.1'
 
 sourceCompatibility = 11
 
-task fatJar(type: Jar) {    
-    baseName = project.name
-
-
+shadowJar {
+    baseName = 'shadow'
+    classifier = null
+    version = null
     manifest {
+        attributes 'Description': 'Game Launcher'
         attributes 'Main-Class': 'main.Main'
     }
-    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
-    with jar
-
-}
-
-
-task runFatJar(type: JavaExec) {
-    dependsOn fatJar
-    classpath = fatJar.outputs.files
-    main = 'main.Main'
 }
 
 repositories {
