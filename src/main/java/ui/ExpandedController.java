@@ -12,15 +12,13 @@ import java.util.ResourceBundle;
 
 public class ExpandedController implements Initializable {
     @FXML
-    private Button expandButton;
-    @FXML
     private Label labelGameList;
     @FXML
     private AnchorPane expandedScene;
     @FXML
     private VBox gamesList;
     private Main main = new Main();
-    private boolean isClicked = false;
+    private static boolean isClicked = false;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -31,18 +29,18 @@ public class ExpandedController implements Initializable {
     }
 
     public boolean setIsClicked() {
-        if (this.isClicked) {
-            this.isClicked = false;
+        if (isClicked) {
+            isClicked = false;
         } else {
-            this.isClicked = true;
+            isClicked = true;
         }
-        return this.isClicked;
+        return isClicked;
     }
 
     public void collapseScreen() {
-        if (!this.isClicked) {
+        if (!isClicked) {
             try {
-                main.changeSceneWithButton(expandedScene, "fxml/scene.fxml");
+                main.changeSceneWithButton("fxml/scene.fxml");
             } catch (Exception e) {
                 System.out.println("asas " + e.getMessage() + " | " + e.getClass().getCanonicalName());
             }

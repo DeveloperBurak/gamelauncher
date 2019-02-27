@@ -1,14 +1,10 @@
 package ui;
 
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.text.Text;
-import main.WindowsActivities;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -20,7 +16,7 @@ public class FXMLController implements Initializable {
     private AnchorPane scene;
     @FXML
     private Text reference;
-    private Main main = new Main();
+    private static Main main = new Main();
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -29,9 +25,10 @@ public class FXMLController implements Initializable {
         scene.setPrefWidth(width);
         scene.setPrefHeight(height);
         expandButton.setPrefWidth(width);
-        expandButton.setMaxWidth(width-5);
+        expandButton.setMaxWidth(width - 5);
         expandButton.setPrefHeight(height);
-        expandButton.setMaxHeight(height-5);
+        expandButton.setMaxHeight(height - 5);
+
     }
 
     public void centered() {
@@ -50,15 +47,12 @@ public class FXMLController implements Initializable {
 
     }
 
-    public void expandScreen(){
-        try{
-            main.changeSceneWithButton(scene,"fxml/expanded.fxml");
-        }catch (Exception e){
-            System.out.println("asas "+e.getMessage() + " | "+ e.getClass().getCanonicalName());
+
+    public void expandScreen() {
+        try {
+            main.changeSceneWithButton("fxml/expanded.fxml");
+        } catch (Exception e) {
+            System.out.println("asas " + e.getMessage() + " | " + e.getClass().getCanonicalName());
         }
     }
-    /*public void hideApp(){
-        main.hideApp(scene);
-    }*/
-
 }
