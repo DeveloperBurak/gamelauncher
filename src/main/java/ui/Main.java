@@ -4,16 +4,13 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import java.awt.*;
-import java.io.File;
-import java.net.URL;
-import javafx.scene.image.Image; //you should import manually
+
 import javax.imageio.ImageIO;
-import java.awt.SystemTray;
-import java.awt.TrayIcon;
+import java.awt.*;
 
 
 public class Main extends Application {
@@ -23,21 +20,22 @@ public class Main extends Application {
         launch(args);
     }
 
-    public double returnScreenWidth() {
+    double returnScreenWidth() {
         Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
         return screenSize.getWidth();
     }
 
-    public double returnScreenHeight() {
+    double returnScreenHeight() {
         Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
         return screenSize.getHeight();
     }
 
-    public double returnSceneHeight(){
-        return this.returnScreenHeight()/25;
+    double returnSceneHeight() {
+        return this.returnScreenHeight() / 25;
     }
-    public double returnSceneWidth(){
-        return this.returnScreenWidth()/30;
+
+    double returnSceneWidth() {
+        return this.returnScreenWidth() / 100;
     }
 
 
@@ -47,7 +45,7 @@ public class Main extends Application {
         double width = this.returnSceneWidth();
         double height = this.returnSceneHeight();
 
-       Parent root = FXMLLoader.load(getClass().getResource("/fxml/scene.fxml"));
+        Parent root = FXMLLoader.load(getClass().getResource("/fxml/scene.fxml"));
 
         Scene scene = new Scene(root, width, height);
         stage.setTitle("Game Launcher");
@@ -62,7 +60,7 @@ public class Main extends Application {
         stage.show();
         final SystemTray tray = SystemTray.getSystemTray();
         final TrayIcon trayIcon = new TrayIcon(ImageIO.read(getClass().getResource("/images/instagramicon.jpg"))
-                .getScaledInstance(16, 16,2), "Game Launcher");
+                .getScaledInstance(16, 16, 2), "Game Launcher");
         try {
             tray.add(trayIcon);
         } catch (AWTException e) {
@@ -70,20 +68,20 @@ public class Main extends Application {
         }
     }
 
-    public void changeSceneWithButton(AnchorPane anchorPane, String fxml) throws Exception{
+    void changeSceneWithButton(AnchorPane anchorPane, String fxml) throws Exception {
         Parent root = null;
-        try{
+        try {
             root = FXMLLoader.load(getClass().getClassLoader().getResource(fxml));
-        }catch (NullPointerException e){
+        } catch (NullPointerException e) {
             System.out.println(e.getMessage());
         }
-        if(root == null){
+        if (root == null) {
             System.out.println("belirtilen yol yok.");
-        }else{
-            Stage stage = (Stage)anchorPane.getScene().getWindow();
-            if(stage == null){
+        } else {
+            Stage stage = (Stage) anchorPane.getScene().getWindow();
+            if (stage == null) {
                 System.out.println("stage boş");
-            }else{
+            } else {
                 stage.setScene(new Scene(root));
             }
         }
