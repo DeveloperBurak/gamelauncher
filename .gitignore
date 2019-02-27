@@ -1,2 +1,7 @@
 .gradle
 .idea
+src/test/
+out/
+build/
+!build/distributions
+readme.md
