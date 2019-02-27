@@ -95,12 +95,11 @@ public class Main extends Application{
                             if (!exe.equals(prevExe)) {
                                 prevExe = exe;
                                 boolean status = WindowsActivities.getIsLegal();
-                                System.out.println("isLegal : " + status);
                                 stage.setAlwaysOnTop(status);
                                 if(status){
-                                    stage.setOpacity(1);
+                                    stage.setX(-8);
                                 }else{
-                                    stage.setOpacity(0);
+                                    stage.setX(-30);
                                 }
 
                                 System.out.println(exe);

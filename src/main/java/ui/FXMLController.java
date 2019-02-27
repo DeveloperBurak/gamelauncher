@@ -28,7 +28,6 @@ public class FXMLController implements Initializable {
         expandButton.setMaxWidth(width - 5);
         expandButton.setPrefHeight(height);
         expandButton.setMaxHeight(height - 5);
-
     }
 
     public void centered() {
