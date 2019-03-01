@@ -22,7 +22,7 @@ public class Main extends Application{
         launch(args);
     }
 
-    static Stage getStage() {
+    public static Stage getStage() {
         return stage;
     }
 
@@ -64,7 +64,6 @@ public class Main extends Application{
 //        stage.setAlwaysOnTop(true);
 
         stage.getIcons().add(new Image(getClass().getResourceAsStream("/images/instagramicon.jpg")));
-        stage.setResizable(false);
         stage.setIconified(false);
         stage.setAlwaysOnTop(true);
         stage.setScene(scene);

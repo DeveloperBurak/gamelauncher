@@ -50,8 +50,9 @@ public class FXMLController implements Initializable {
     public void expandScreen() {
         try {
             main.changeSceneWithButton("fxml/expanded.fxml");
+            System.out.println("asda");
         } catch (Exception e) {
-            System.out.println("asas " + e.getMessage() + " | " + e.getClass().getCanonicalName());
+            System.out.println("Expanded couldn't load:  " + e.getMessage() + " | " + e.getClass().getCanonicalName());
         }
     }
 }
