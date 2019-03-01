@@ -7,9 +7,9 @@
 <?import javafx.scene.layout.StackPane?>
 <StackPane fx:id="expandedScene" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
            fx:controller="ui.ExpandedController" onMouseExited="#collapseScreen" onMouseClicked="#setIsClicked">
-    <Label fx:id="labelGameList" text="Game List"/>
     <HBox fx:id="gamesListContainer">
         <VBox fx:id="gamesList">
+            <Label fx:id="labelGameList" text="Game List"/>
 
 
         </VBox>

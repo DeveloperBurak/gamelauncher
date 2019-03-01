@@ -109,7 +109,6 @@ public class ExpandedController implements Initializable {
                 @Override
                 public void handle(MouseEvent e) {
                     gameImageViewer.setX(listWidth+5);
-                    gameImageViewer.toBack();
                     Image picture = new Image(game.gameImage.toURI().toString(),gamesListContainer.getWidth()-gamesList.getWidth(),gamesListContainer.getHeight(),false,false);
                     gameImageViewer.setImage(picture);
                     FadeTransition ft = new FadeTransition(Duration.millis(1000), gameImageViewer);
@@ -118,8 +117,6 @@ public class ExpandedController implements Initializable {
                     ft.setCycleCount(1);
                     ft.setAutoReverse(true);
                     ft.play();
-                    Stage stage = ui.Main.getStage();
-                    stage.setResizable(true);
                     gamesListContainer.getChildren().removeAll(gameImageViewer);
                     gamesListContainer.getChildren().add(gameImageViewer);
 
@@ -130,12 +127,8 @@ public class ExpandedController implements Initializable {
                 @Override
                 public void handle(MouseEvent e) {
                     System.out.println("Mouse Clicked !");
-                    expandedScene.setPrefWidth(width);
-                    expandedScene.setPrefHeight(height);
-                    expandedScene.setMaxWidth(width);
                 }
             });
-
             gamesList.getChildren().add(b);
     }
 

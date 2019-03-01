@@ -61,8 +61,6 @@ public class Main extends Application{
         stage.setX(-8);
         stage.setY(-30);
         stage.initStyle(StageStyle.UTILITY);
-//        stage.setAlwaysOnTop(true);
-
         stage.getIcons().add(new Image(getClass().getResourceAsStream("/images/instagramicon.jpg")));
         stage.setIconified(false);
         stage.setAlwaysOnTop(true);

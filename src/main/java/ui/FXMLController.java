@@ -14,8 +14,6 @@ public class FXMLController implements Initializable {
     private Button expandButton;
     @FXML
     private AnchorPane scene;
-    @FXML
-    private Text reference;
     private static Main main = new Main();
 
     @Override
