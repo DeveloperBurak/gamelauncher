@@ -152,7 +152,15 @@ public class ExpandedController implements Initializable {
                     String cmd = "cmd /c start cmd.exe /K \""+game.gameExe+"\"";
                     try{
                         Process proc = rt.exec(cmd);
-                        proc.destroy();
+//                        proc.destroy();
+                        try{
+                            Thread.sleep(4000);
+                            Runtime.getRuntime().exec("taskkill /f /im cmd.exe");
+
+                        }catch (InterruptedException exc){
+                            System.out.println(exc.getMessage());
+                        }
+
                     }catch (IOException ex){
                         System.out.println(ex.getMessage());
                     }
@@ -163,37 +171,36 @@ public class ExpandedController implements Initializable {
         });
         gamesList.getChildren().add(b);
     }
-
+    private static String getNameOfTemp(String str){
+        String tempName = str.substring(temp.lastIndexOf('.') + 1, temp.length()).toLowerCase();
+        return tempName;
+    }
 
     private static void listFilesForFolder(final File folder) {
-        ArrayList<String> games = new ArrayList<>();
 
         ArrayList<String> gamesShortcuts = new ArrayList<>();
         for (final File fileEntry : folderShortcut.listFiles()) {
             if (fileEntry.isDirectory()) {
                 System.out.println("Reading files under the folder " + folderShortcut.getAbsolutePath());
-                listFilesForFolder(fileEntry);
+//                listFilesForFolder(fileEntry);
             } else {
                 if (fileEntry.isFile()) {
                     temp = fileEntry.getName();
                     String tempName = stripExtension(temp);
-                    String tempExtension = temp.substring(temp.lastIndexOf('.') + 1, temp.length()).toLowerCase();
+                    String tempExtension = getNameOfTemp(temp);
                     if ((tempExtension).equals("lnk") || (tempExtension).equals("url")) {
-                        gamesShortcuts.add(tempName);
-
+                        gamesShortcuts.add(temp);
+                        System.out.println(temp);
                     }
                 }
-
             }
         }
-
-        System.out.println(folder.getAbsoluteFile());
         ArrayList<String> gamesImages = new ArrayList<>();
 
         for (final File fileEntry : folderImage.listFiles()) {
             if (fileEntry.isDirectory()) {
                 System.out.println("Reading files under the folder " + folderImage.getAbsolutePath());
-                listFilesForFolder(fileEntry);
+//                listFilesForFolder(fileEntry);
             } else {
                 if (fileEntry.isFile()) {
                     temp = fileEntry.getName();
@@ -207,13 +214,13 @@ public class ExpandedController implements Initializable {
         }
         // your code
         for (String gameText : gamesShortcuts) {
-            if (gamesImages.contains(gameText)) {
-                games.add(gameText);
-                String gameImagePath = folderImage.getAbsolutePath() + "/" + gamesImages.get(gamesImages.indexOf(gameText)) + ".jpg";
+            String gameName = stripExtension(gameText);
+            if (gamesImages.contains(stripExtension(gameName))) {
+                String gameImagePath = folderImage.getAbsolutePath() + "/" + gamesImages.get(gamesImages.indexOf(gameName)) + ".jpg";
                 File fileImagePath = new File(gameImagePath);
-                String gameShortcut = folderShortcut.getAbsolutePath() + "/" + gamesImages.get(gamesImages.indexOf(gameText)) + ".lnk";
+                String gameShortcut = folderShortcut.getAbsolutePath() + "/" + gameText;
                 File fileShortcut = new File(gameShortcut);
-                Game gameElement = new Game(fileShortcut, gameText, fileImagePath);
+                Game gameElement = new Game(fileShortcut, gameName, fileImagePath);
                 gamesWithImage.add(gameElement);
             }
         }

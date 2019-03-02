@@ -23,9 +23,9 @@ version '0.1'
 sourceCompatibility = 11
 
 shadowJar {
-    baseName = 'shadow'
+    baseName = 'Game Launcher'
     classifier = null
-    version = null
+    version = 'Alpha 0.5'
     manifest {
         attributes 'Description': 'Game Launcher'
         attributes 'Main-Class': 'main.Main'
