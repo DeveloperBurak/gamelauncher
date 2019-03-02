@@ -45,6 +45,8 @@ public class ExpandedController implements Initializable {
     private static final File folder = new File("C:/Users/Developer/Documents/Game Launcher");
     private static final File folderImage = new File(folder.getPath() + "/images/");
     private static final File folderShortcut = new File(folder.getPath() + "/shortcuts/");
+    private static ArrayList<String> shortcuts = new ArrayList<>();
+    private static ArrayList<String> images = new ArrayList<>();
     private static ImageView gameImageViewer = new ImageView();
     private static Label label = new Label();
 
@@ -74,7 +76,11 @@ public class ExpandedController implements Initializable {
                 setIsClicked(true);
             }
         });
-        listFilesForFolder(folder);
+
+        addToListFrom(folderImage, images);
+        addToListFrom(folderShortcut, shortcuts);
+        generateGameWithImage(shortcuts, images);
+
         for (Game game : gamesWithImage) {
             generateButton(game);
         }
@@ -88,6 +94,22 @@ public class ExpandedController implements Initializable {
         trans.setAutoReverse(true);
         // Play the Animation
         trans.play();
+    }
+
+    private void generateGameWithImage(ArrayList<String> shortcuts, ArrayList<String> images) {
+        for (String game : shortcuts) {
+            String gameName = stripExtension(game); // get base name
+            String gameImage = gameName + ".jpg"; // set image file.
+            if (images.contains(gameImage)) {
+                String gameImagePath = folderImage.getAbsolutePath() + "/" + images.get(images.indexOf(gameImage));
+                File fileImagePath = new File(gameImagePath);
+                String gameShortcut = folderShortcut.getAbsolutePath() + "/" + game;
+                File fileShortcut = new File(gameShortcut);
+                Game gameElement = new Game(fileShortcut, gameName, fileImagePath);
+                gamesWithImage.add(gameElement);
+                System.out.println("dasda");
+            }
+        }
     }
 
     private void setIsClicked(boolean status) {
@@ -149,19 +171,19 @@ public class ExpandedController implements Initializable {
                 if (op.equals("Windows 10") || op.equals("Windows 7")) {
 
                     Runtime rt = Runtime.getRuntime();
-                    String cmd = "cmd /c start cmd.exe /K \""+game.gameExe+"\"";
-                    try{
+                    String cmd = "cmd /c start cmd.exe /K \"" + game.gameExe + "\"";
+                    try {
                         Process proc = rt.exec(cmd);
 //                        proc.destroy();
-                        try{
+                        try {
                             Thread.sleep(4000);
                             Runtime.getRuntime().exec("taskkill /f /im cmd.exe");
 
-                        }catch (InterruptedException exc){
+                        } catch (InterruptedException exc) {
                             System.out.println(exc.getMessage());
                         }
 
-                    }catch (IOException ex){
+                    } catch (IOException ex) {
                         System.out.println(ex.getMessage());
                     }
                     System.out.println("Executing command: " + cmd);
@@ -171,76 +193,42 @@ public class ExpandedController implements Initializable {
         });
         gamesList.getChildren().add(b);
     }
-    private static String getNameOfTemp(String str){
+
+    private static String getExtensionOf(String str) {
         String tempName = str.substring(temp.lastIndexOf('.') + 1, temp.length()).toLowerCase();
         return tempName;
     }
 
-    private static void listFilesForFolder(final File folder) {
-
-        ArrayList<String> gamesShortcuts = new ArrayList<>();
-        for (final File fileEntry : folderShortcut.listFiles()) {
-            if (fileEntry.isDirectory()) {
-                System.out.println("Reading files under the folder " + folderShortcut.getAbsolutePath());
-//                listFilesForFolder(fileEntry);
-            } else {
-                if (fileEntry.isFile()) {
-                    temp = fileEntry.getName();
-                    String tempName = stripExtension(temp);
-                    String tempExtension = getNameOfTemp(temp);
-                    if ((tempExtension).equals("lnk") || (tempExtension).equals("url")) {
-                        gamesShortcuts.add(temp);
-                        System.out.println(temp);
+    private static void addToListFrom(File folderParam, ArrayList<String> assetArray) {
+        try {
+            for (final File fileEntry : folderParam.listFiles()) {
+                if (fileEntry.isDirectory()) {
+                    System.out.println("Reading files under the folder " + folderParam.getAbsolutePath());
+                    addToListFrom(fileEntry, assetArray);
+                } else {
+                    if (fileEntry.isFile()) {
+                        temp = fileEntry.getName();
+                        if (!assetArray.contains(temp)) {
+                            assetArray.add(temp);
+                        } else {
+                            System.out.println("Duplicated : " + temp);
+                        }
                     }
                 }
             }
-        }
-        ArrayList<String> gamesImages = new ArrayList<>();
-
-        for (final File fileEntry : folderImage.listFiles()) {
-            if (fileEntry.isDirectory()) {
-                System.out.println("Reading files under the folder " + folderImage.getAbsolutePath());
-//                listFilesForFolder(fileEntry);
-            } else {
-                if (fileEntry.isFile()) {
-                    temp = fileEntry.getName();
-                    String tempName = stripExtension(temp);
-                    String tempExtension = temp.substring(temp.lastIndexOf('.') + 1, temp.length()).toLowerCase();
-                    if ((tempExtension).equals("jpg")) {
-                        gamesImages.add(tempName);
-                    }
-                }
-            }
-        }
-        // your code
-        for (String gameText : gamesShortcuts) {
-            String gameName = stripExtension(gameText);
-            if (gamesImages.contains(stripExtension(gameName))) {
-                String gameImagePath = folderImage.getAbsolutePath() + "/" + gamesImages.get(gamesImages.indexOf(gameName)) + ".jpg";
-                File fileImagePath = new File(gameImagePath);
-                String gameShortcut = folderShortcut.getAbsolutePath() + "/" + gameText;
-                File fileShortcut = new File(gameShortcut);
-                Game gameElement = new Game(fileShortcut, gameName, fileImagePath);
-                gamesWithImage.add(gameElement);
-            }
+        } catch (NullPointerException e) {
+            System.out.println("File is empty.");
         }
     }
 
     private static String stripExtension(String str) {
         // Handle null case specially.
-
         if (str == null) return null;
-
         // Get position of last '.'.
-
         int pos = str.lastIndexOf(".");
-
         // If there wasn't any '.' just return the string as is.
-
         if (pos == -1) return str;
-
         // Otherwise return the string, up to the dot.
-
         return str.substring(0, pos);
     }
 
