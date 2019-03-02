@@ -17,6 +17,8 @@ import java.awt.*;
 
 public class Main extends Application{
     private static Stage stage;
+    private final Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
+    private final String OperatingSystem = System.getProperty("os.name");
 
     public static void main(String[] args) {
         launch(args);
@@ -26,48 +28,53 @@ public class Main extends Application{
         return stage;
     }
 
+    public String getOperatingSystem() {
+        return OperatingSystem;
+    }
+
     static void setStage(Stage stage) {
         Main.stage = stage;
     }
 
     double returnScreenWidth() {
-        Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
         return screenSize.getWidth();
     }
 
     double returnScreenHeight() {
-        Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
         return screenSize.getHeight();
     }
 
-    double returnSceneHeight() {
-        return this.returnScreenHeight() / 25;
+    final double returnSceneHeight() {
+        return screenSize.getHeight() / 20;
     }
 
-    double returnSceneWidth() {
-        return this.returnScreenWidth() / 100;
+    final double returnSceneWidth() {
+        return screenSize.getWidth() / 30;
     }
 
 
     @Override
     public void start(Stage primaryStage) throws Exception {
         stage = primaryStage;
-        double width = this.returnSceneWidth();
-        double height = this.returnSceneHeight();
+        final double width = this.returnSceneWidth();
+        final double height = this.returnSceneHeight();
+        System.out.println("Screen width: "+returnScreenHeight());
+        System.out.println("Screen height: "+returnScreenWidth());
 
         Parent root = FXMLLoader.load(getClass().getResource("/fxml/scene.fxml"));
         Scene scene = new Scene(root, width, height);
         stage.setTitle("Game Launcher");
         stage.setX(-8);
-        stage.setY(-30);
+        stage.setY(-35);
         stage.initStyle(StageStyle.UTILITY);
+        stage.setHeight(height);
+        stage.setWidth(width);
         stage.getIcons().add(new Image(getClass().getResourceAsStream("/images/instagramicon.jpg")));
         stage.setIconified(false);
         stage.setAlwaysOnTop(true);
         stage.setScene(scene);
-        stage.setOpacity(1);
-
         stage.show();
+
         final SystemTray tray = SystemTray.getSystemTray();
         final TrayIcon trayIcon = new TrayIcon(ImageIO.read(getClass().getResource("/images/instagramicon.jpg"))
                 .getScaledInstance(16, 16, 2), "Game Launcher");
@@ -133,9 +140,9 @@ public class Main extends Application{
             System.out.println(e.getMessage());
         }
         if (root == null) {
-            System.out.println("belirtilen yol yok.");
         } else {
             if (stage == null) {
+                System.out.println("belirtilen yol yok.");
                 System.out.println("stage boş");
             } else {
                 stage.setScene(new Scene(root));

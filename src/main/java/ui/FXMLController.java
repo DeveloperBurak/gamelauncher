@@ -5,6 +5,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.text.Text;
+import javafx.stage.Stage;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -15,17 +16,14 @@ public class FXMLController implements Initializable {
     @FXML
     private AnchorPane scene;
     private static Main main = new Main();
+    private Stage stage = main.getStage();
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        double width = main.returnSceneWidth();
-        double height = main.returnSceneHeight();
-        scene.setPrefWidth(width);
-        scene.setPrefHeight(height);
-        expandButton.setPrefWidth(width);
-        expandButton.setMaxWidth(width - 5);
-        expandButton.setPrefHeight(height);
-        expandButton.setMaxHeight(height - 5);
+        expandButton.setPrefWidth(main.returnSceneWidth()-5);
+        expandButton.setPrefHeight(main.returnSceneHeight()-5);
+        System.out.println("Screen width: "+main.returnScreenHeight());
+        System.out.println("Screen height: "+main.returnScreenWidth());
     }
 
     public void centered() {
