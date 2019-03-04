@@ -2,6 +2,7 @@ package ui;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.TranslateTransition;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -17,12 +18,16 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import main.FileController;
 
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.ResourceBundle;
+
+import static java.awt.Cursor.HAND_CURSOR;
 
 public class ExpandedController implements Initializable {
     @FXML
@@ -42,9 +47,10 @@ public class ExpandedController implements Initializable {
     private Stage stage = main.getStage();
     private final double listWidth = width / 10;
     private final double listHeight = height;
-    private static final File folder = new File("C:/Users/Developer/Documents/Game Launcher");
-    private static final File folderImage = new File(folder.getPath() + "/images/");
-    private static final File folderShortcut = new File(folder.getPath() + "/shortcuts/");
+    private static final File folder = FileController.getFolder();
+    private static final File folderImage = FileController.getFolderImage();
+    private static final File folderShortcut = FileController.getFolderShortcut();
+
     private static ArrayList<String> shortcuts = new ArrayList<>();
     private static ArrayList<String> images = new ArrayList<>();
     private static ImageView gameImageViewer = new ImageView();
@@ -57,6 +63,7 @@ public class ExpandedController implements Initializable {
         expandedContainer.setPrefHeight(height);*/
         stage.setWidth(listWidth);
         stage.setHeight(height);
+
         expandedScene.setMinSize(0, 0);
         expandedScene.setPrefSize(expandedContainer.getPrefWidth(), expandedContainer.getPrefHeight()); //didn't work
 
@@ -79,6 +86,7 @@ public class ExpandedController implements Initializable {
 
         addToListFrom(folderImage, images);
         addToListFrom(folderShortcut, shortcuts);
+        System.out.println(folderImage);
         generateGameWithImage(shortcuts, images);
 
         for (Game game : gamesWithImage) {
@@ -118,17 +126,34 @@ public class ExpandedController implements Initializable {
 
     public void collapseScreen() {
         if (!isClicked) {
-            try {
-                gamesWithImage.clear();
-                main.changeSceneWithButton("fxml/scene.fxml");
-                System.out.println(stage.getWidth());
-                stage.setWidth(main.returnSceneWidth());
-                stage.setHeight(main.returnSceneHeight());
-                System.out.println("Screen width: " + main.returnScreenHeight());
-                System.out.println("Screen height: " + main.returnScreenWidth());
-            } catch (Exception e) {
-                System.out.println("Collapsed screen couldnt load: " + e.getMessage() + " | " + e.getClass().getCanonicalName());
-            }
+            gamesWithImage.clear();
+            TranslateTransition trans = new TranslateTransition(Duration.seconds(1), gamesList);
+            trans.setFromX(0);
+            trans.setToX(-150);
+            // Let the animation run forever
+            trans.setCycleCount(1);
+            // Reverse direction on alternating cycles
+            trans.setAutoReverse(true);
+            // Play the Animation
+            trans.play();
+            trans.setOnFinished(new EventHandler<ActionEvent>() {
+
+                @Override
+                public void handle(ActionEvent event) {
+                    try {
+                        main.changeSceneWithButton("fxml/scene.fxml");
+                        System.out.println(stage.getWidth());
+                        stage.setWidth(main.returnSceneWidth());
+                        stage.setHeight(main.returnSceneHeight());
+                        System.out.println("Screen width: " + main.returnScreenHeight());
+                        System.out.println("Screen height: " + main.returnScreenWidth());
+                    } catch (Exception e) {
+                        System.out.println("Collapsed screen couldnt load: " + e.getMessage() + " | " + e.getClass().getCanonicalName());
+                    }
+                }
+            });
+
+
         }
     }
 
@@ -149,6 +174,7 @@ public class ExpandedController implements Initializable {
                 stage.setWidth(width + 18);
                 gamesList.setMaxWidth(stage.getWidth() - 1500);
                 expandedScene.setAlignment(Pos.TOP_LEFT);
+                b.setCursor(javafx.scene.Cursor.HAND);
 
                 expandedScene.getChildren().removeAll(gameImageViewer);
                 expandedScene.getChildren().add(gameImageViewer);
@@ -188,7 +214,6 @@ public class ExpandedController implements Initializable {
                     }
                     System.out.println("Executing command: " + cmd);
                 }
-
             }
         });
         gamesList.getChildren().add(b);

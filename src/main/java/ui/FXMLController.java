@@ -22,6 +22,7 @@ public class FXMLController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         expandButton.setPrefWidth(main.returnSceneWidth()-5);
         expandButton.setPrefHeight(main.returnSceneHeight()-5);
+        stage.setX(-8);
         System.out.println("Screen width: "+main.returnScreenHeight());
         System.out.println("Screen height: "+main.returnScreenWidth());
     }

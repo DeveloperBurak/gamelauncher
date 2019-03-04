@@ -64,9 +64,9 @@ public class Main extends Application{
         Parent root = FXMLLoader.load(getClass().getResource("/fxml/scene.fxml"));
         Scene scene = new Scene(root, width, height);
         stage.setTitle("Game Launcher");
-        stage.setX(-8);
-        stage.setY(-35);
-        stage.initStyle(StageStyle.UTILITY);
+        stage.initStyle(StageStyle.TRANSPARENT);
+        stage.setX(0);
+        stage.setY(0);
         stage.setHeight(height);
         stage.setWidth(width);
         stage.getIcons().add(new Image(getClass().getResourceAsStream("/images/instagramicon.jpg")));
