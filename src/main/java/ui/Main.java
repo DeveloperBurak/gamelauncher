@@ -2,7 +2,6 @@ package ui;
 
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.concurrent.Task;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -15,7 +14,7 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 
 
-public class Main extends Application{
+public class Main extends Application {
     private static Stage stage;
     private final Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
     private final String OperatingSystem = System.getProperty("os.name");
@@ -24,11 +23,11 @@ public class Main extends Application{
         launch(args);
     }
 
-    public static Stage getStage() {
+    static Stage getStage() {
         return stage;
     }
 
-    public String getOperatingSystem() {
+    String getOperatingSystem() {
         return OperatingSystem;
     }
 
@@ -45,30 +44,30 @@ public class Main extends Application{
     }
 
     final double returnSceneHeight() {
-        return screenSize.getHeight() / 20;
+        return screenSize.getHeight() / 35;
     }
 
     final double returnSceneWidth() {
-        return screenSize.getWidth() / 30;
+        return screenSize.getWidth() / 45;
     }
 
 
     @Override
     public void start(Stage primaryStage) throws Exception {
         stage = primaryStage;
-        final double width = this.returnSceneWidth();
-        final double height = this.returnSceneHeight();
-        System.out.println("Screen width: "+returnScreenHeight());
-        System.out.println("Screen height: "+returnScreenWidth());
+        final double sceneWidth = this.returnSceneWidth();
+        final double sceneHeight = this.returnSceneHeight();
+        System.out.println("Screen width: " + returnScreenHeight());
+        System.out.println("Screen height: " + returnScreenWidth());
 
         Parent root = FXMLLoader.load(getClass().getResource("/fxml/scene.fxml"));
-        Scene scene = new Scene(root, width, height);
+        Scene scene = new Scene(root, sceneWidth, sceneHeight);
         stage.setTitle("Game Launcher");
-        stage.initStyle(StageStyle.TRANSPARENT);
+        stage.initStyle(StageStyle.UNDECORATED);
         stage.setX(0);
         stage.setY(0);
-        stage.setHeight(height);
-        stage.setWidth(width);
+        stage.setHeight(sceneHeight);
+        stage.setWidth(sceneWidth);
         stage.getIcons().add(new Image(getClass().getResourceAsStream("/images/instagramicon.jpg")));
         stage.setIconified(false);
         stage.setAlwaysOnTop(true);
@@ -100,12 +99,6 @@ public class Main extends Application{
                                 prevExe = exe;
                                 boolean status = WindowsActivities.getIsLegal();
                                 stage.setAlwaysOnTop(status);
-                                if(status){
-                                    stage.setX(-8);
-                                }else{
-                                    stage.setX(-30);
-                                }
-
                                 System.out.println(exe);
                             }
                         } catch (NullPointerException e) {
@@ -118,6 +111,7 @@ public class Main extends Application{
                     try {
                         Thread.sleep(200);
                     } catch (InterruptedException ex) {
+                        System.out.println(ex.getMessage());
                     }
 
                     // UI update is run on the Application thread
@@ -139,8 +133,7 @@ public class Main extends Application{
         } catch (NullPointerException e) {
             System.out.println(e.getMessage());
         }
-        if (root == null) {
-        } else {
+        if (root != null) {
             if (stage == null) {
                 System.out.println("belirtilen yol yok.");
                 System.out.println("stage boş");

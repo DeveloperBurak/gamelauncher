@@ -7,6 +7,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
+import java.awt.*;
 import java.net.URL;
 import java.util.ResourceBundle;
 
@@ -40,6 +41,8 @@ public class FXMLController implements Initializable {
 
         expandButton.setLayoutX(width / 2 - expandButton.getWidth() / 2);
         expandButton.setLayoutY(height / 2 - expandButton.getHeight() / 2);
+
+
 
     }
 

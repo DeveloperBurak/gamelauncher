@@ -51,6 +51,7 @@ public class ExpandedController implements Initializable {
     private static final File folderImage = FileController.getFolderImage();
     private static final File folderShortcut = FileController.getFolderShortcut();
 
+    private static final ArrayList<String> fileExe = new ArrayList<>();
     private static ArrayList<String> shortcuts = new ArrayList<>();
     private static ArrayList<String> images = new ArrayList<>();
     private static ImageView gameImageViewer = new ImageView();
@@ -59,25 +60,20 @@ public class ExpandedController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        /*expandedContainer.setPrefWidth(listWidth);
-        expandedContainer.setPrefHeight(height);*/
         stage.setWidth(listWidth);
         stage.setHeight(height);
-
         expandedScene.setMinSize(0, 0);
         expandedScene.setPrefSize(expandedContainer.getPrefWidth(), expandedContainer.getPrefHeight()); //didn't work
-
         stage.setMaxWidth(width);
-        gamesList.setPrefWidth(stage.getWidth() - 1500);
         gamesList.setPadding(new Insets(labelGameList.getHeight() + 20, 15, 0, 10));
-        gamesList.setStyle("-fx-background-color: linear-gradient(to right, rgba(100,100,100,0.80) 0%, rgba(150,150,150,0.0) 100%)");
-        gameImageViewer.addEventHandler(MouseEvent.MOUSE_ENTERED, new EventHandler<MouseEvent>() {
+        gamesList.setStyle("-fx-background-color: linear-gradient(to right, rgba(200,200,200,1) 0%, rgba(200,200,200,0.80) 30%,rgba(255,255,255,0.20) 80%, rgba(255,255,255,0.0) 100%)");
+        gameImageViewer.addEventHandler(MouseEvent.MOUSE_ENTERED, new EventHandler<>() {
             @Override
             public void handle(MouseEvent e) {
                 collapseScreen();
             }
         });
-        expandedScene.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+        expandedScene.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<>() {
             @Override
             public void handle(MouseEvent e) {
                 setIsClicked(true);
@@ -86,7 +82,7 @@ public class ExpandedController implements Initializable {
 
         addToListFrom(folderImage, images);
         addToListFrom(folderShortcut, shortcuts);
-        System.out.println(folderImage);
+        getFileName(shortcuts);
         generateGameWithImage(shortcuts, images);
 
         for (Game game : gamesWithImage) {
@@ -106,14 +102,16 @@ public class ExpandedController implements Initializable {
 
     private void generateGameWithImage(ArrayList<String> shortcuts, ArrayList<String> images) {
         for (String game : shortcuts) {
-            String gameName = stripExtension(game); // get base name
+            File gameFile = new File(game);
+            String gameName = gameFile.getName();
+            gameName = stripExtension(gameName);
             String gameImage = gameName + ".jpg"; // set image file.
-            if (images.contains(gameImage)) {
-                String gameImagePath = folderImage.getAbsolutePath() + "/" + images.get(images.indexOf(gameImage));
-                File fileImagePath = new File(gameImagePath);
-                String gameShortcut = folderShortcut.getAbsolutePath() + "/" + game;
-                File fileShortcut = new File(gameShortcut);
-                Game gameElement = new Game(fileShortcut, gameName, fileImagePath);
+            System.out.println(folderImage.getAbsolutePath()+"\\"+gameImage);
+            String gameImageFilePath = folderImage.getAbsolutePath()+"\\"+gameImage;
+            if (images.contains(gameImageFilePath)) {
+//                String gameImagePath = folderImage.getAbsolutePath() + "/" + images.get(images.indexOf(gameImage));
+                File fileImagePath = new File(gameImageFilePath);
+                Game gameElement = new Game(gameFile, gameName, fileImagePath);
                 gamesWithImage.add(gameElement);
                 System.out.println("dasda");
             }
@@ -136,7 +134,7 @@ public class ExpandedController implements Initializable {
             trans.setAutoReverse(true);
             // Play the Animation
             trans.play();
-            trans.setOnFinished(new EventHandler<ActionEvent>() {
+            trans.setOnFinished(new EventHandler<>() {
 
                 @Override
                 public void handle(ActionEvent event) {
@@ -162,7 +160,7 @@ public class ExpandedController implements Initializable {
         b.setText(game.gameText);
         b.setStyle(
                 "-fx-background-color: rgba(255, 255, 255, 0);");
-        b.addEventHandler(MouseEvent.MOUSE_ENTERED, new EventHandler<MouseEvent>() {
+        b.addEventHandler(MouseEvent.MOUSE_ENTERED, new EventHandler<>() {
             @Override
             public void handle(MouseEvent e) {
                 Image picture = new Image(game.gameImage.toURI().toString(), expandedScene.getWidth(), expandedScene.getHeight(), false, false);
@@ -172,10 +170,8 @@ public class ExpandedController implements Initializable {
                 ft.setToValue(1);
                 ft.play();
                 stage.setWidth(width + 18);
-                gamesList.setMaxWidth(stage.getWidth() - 1500);
                 expandedScene.setAlignment(Pos.TOP_LEFT);
                 b.setCursor(javafx.scene.Cursor.HAND);
-
                 expandedScene.getChildren().removeAll(gameImageViewer);
                 expandedScene.getChildren().add(gameImageViewer);
                 gamesList.toFront();
@@ -184,7 +180,7 @@ public class ExpandedController implements Initializable {
             }
         });
 
-        b.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+        b.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<>() {
             @Override
             public void handle(MouseEvent e) {
                 setIsClicked(false);
@@ -224,17 +220,25 @@ public class ExpandedController implements Initializable {
         return tempName;
     }
 
+    private static void getFileName(ArrayList<String> games){
+        for(String game: games){
+            File file = new File(game);
+            fileExe.add(stripExtension(file.getName()));
+        }
+    }
+
     private static void addToListFrom(File folderParam, ArrayList<String> assetArray) {
         try {
             for (final File fileEntry : folderParam.listFiles()) {
                 if (fileEntry.isDirectory()) {
                     System.out.println("Reading files under the folder " + folderParam.getAbsolutePath());
-                    addToListFrom(fileEntry, assetArray);
+                    addToListFrom(fileEntry.getAbsoluteFile(), assetArray);
                 } else {
                     if (fileEntry.isFile()) {
-                        temp = fileEntry.getName();
+                        temp = fileEntry.getAbsolutePath();
                         if (!assetArray.contains(temp)) {
                             assetArray.add(temp);
+                            System.out.println("added: " + temp);
                         } else {
                             System.out.println("Duplicated : " + temp);
                         }
