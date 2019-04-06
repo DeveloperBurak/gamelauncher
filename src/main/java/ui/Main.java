@@ -57,8 +57,6 @@ public class Main extends Application {
         stage = primaryStage;
         final double sceneWidth = this.returnSceneWidth();
         final double sceneHeight = this.returnSceneHeight();
-        System.out.println("Screen width: " + returnScreenHeight());
-        System.out.println("Screen height: " + returnScreenWidth());
 
         Parent root = FXMLLoader.load(getClass().getResource("/fxml/scene.fxml"));
         Scene scene = new Scene(root, sceneWidth, sceneHeight);
@@ -68,14 +66,14 @@ public class Main extends Application {
         stage.setY(0);
         stage.setHeight(sceneHeight);
         stage.setWidth(sceneWidth);
-        stage.getIcons().add(new Image(getClass().getResourceAsStream("/images/instagramicon.jpg")));
+        stage.getIcons().add(new Image(getClass().getResourceAsStream("/images/icon.jpg")));
         stage.setIconified(false);
         stage.setAlwaysOnTop(true);
         stage.setScene(scene);
         stage.show();
 
         final SystemTray tray = SystemTray.getSystemTray();
-        final TrayIcon trayIcon = new TrayIcon(ImageIO.read(getClass().getResource("/images/instagramicon.jpg"))
+        final TrayIcon trayIcon = new TrayIcon(ImageIO.read(getClass().getResource("/images/icon.jpg"))
                 .getScaledInstance(16, 16, 2), "Game Launcher");
         try {
             tray.add(trayIcon);
@@ -99,7 +97,6 @@ public class Main extends Application {
                                 prevExe = exe;
                                 boolean status = WindowsActivities.getIsLegal();
                                 stage.setAlwaysOnTop(status);
-                                System.out.println(exe);
                             }
                         } catch (NullPointerException e) {
                             System.out.println(e.getMessage());

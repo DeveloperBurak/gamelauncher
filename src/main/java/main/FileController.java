@@ -5,9 +5,9 @@ import java.io.IOException;
 
 public class FileController {
 
-    private static final File folder = new File(System.getProperty("user.home")+"/Documents/Game Launcher");
-    private static final File folderImage = new File(folder.getPath() + "/images/");
-    private static final File folderShortcut = new File(folder.getPath() + "/shortcuts/");
+    public static final File folder = new File(System.getProperty("user.home")+"/Documents/Game Launcher");
+    private static final File folderImage = new File(folder.getPath() +File.separator+ "images"+File.separator);
+    private static final File folderShortcut = new File(folder.getPath() +File.separator+ "shortcuts"+File.separator);
 
     public static File getFolder() {
         return folder;

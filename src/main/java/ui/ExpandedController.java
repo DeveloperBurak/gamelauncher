@@ -10,6 +10,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.TitledPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
@@ -41,7 +42,9 @@ public class ExpandedController implements Initializable {
     private Main main = new Main();
     private static boolean isClicked = false;
     static String temp = "";
-    private static ArrayList<Game> gamesWithImage = new ArrayList<>();
+    private static ArrayList<Category> categories = new ArrayList<>();
+    private static Category uncategorized = new Category("Uncategorized");
+
     private final double width = main.returnScreenWidth();
     private final double height = main.returnScreenHeight();
     private Stage stage = main.getStage();
@@ -60,6 +63,7 @@ public class ExpandedController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        expandedScene.getStylesheets().add(getClass().getClassLoader().getResource("css/style.css").toExternalForm());
         stage.setWidth(listWidth);
         stage.setHeight(height);
         expandedScene.setMinSize(0, 0);
@@ -80,42 +84,18 @@ public class ExpandedController implements Initializable {
             }
         });
 
-        addToListFrom(folderImage, images);
-        addToListFrom(folderShortcut, shortcuts);
-        getFileName(shortcuts);
-        generateGameWithImage(shortcuts, images);
+        categories.add(uncategorized);
+        addToListFrom();
+        generateButton(categories);
 
-        for (Game game : gamesWithImage) {
-            generateButton(game);
-        }
         // Set up a Translate Transition for the Text object
         TranslateTransition trans = new TranslateTransition(Duration.seconds(1), gamesList);
         trans.setFromX(-150);
         trans.setToX(0);
         // Let the animation run forever
         trans.setCycleCount(1);
-        // Reverse direction on alternating cycles
-        trans.setAutoReverse(true);
         // Play the Animation
         trans.play();
-    }
-
-    private void generateGameWithImage(ArrayList<String> shortcuts, ArrayList<String> images) {
-        for (String game : shortcuts) {
-            File gameFile = new File(game);
-            String gameName = gameFile.getName();
-            gameName = stripExtension(gameName);
-            String gameImage = gameName + ".jpg"; // set image file.
-            System.out.println(folderImage.getAbsolutePath()+"\\"+gameImage);
-            String gameImageFilePath = folderImage.getAbsolutePath()+"\\"+gameImage;
-            if (images.contains(gameImageFilePath)) {
-//                String gameImagePath = folderImage.getAbsolutePath() + "/" + images.get(images.indexOf(gameImage));
-                File fileImagePath = new File(gameImageFilePath);
-                Game gameElement = new Game(gameFile, gameName, fileImagePath);
-                gamesWithImage.add(gameElement);
-                System.out.println("dasda");
-            }
-        }
     }
 
     private void setIsClicked(boolean status) {
@@ -124,14 +104,14 @@ public class ExpandedController implements Initializable {
 
     public void collapseScreen() {
         if (!isClicked) {
-            gamesWithImage.clear();
+            categories.clear();
+            for(Category category : categories){
+                category.removeGames();
+            }
+            uncategorized.removeGames(); //it should be there, can't delete automatically in for loop
             TranslateTransition trans = new TranslateTransition(Duration.seconds(1), gamesList);
             trans.setFromX(0);
             trans.setToX(-150);
-            // Let the animation run forever
-            trans.setCycleCount(1);
-            // Reverse direction on alternating cycles
-            trans.setAutoReverse(true);
             // Play the Animation
             trans.play();
             trans.setOnFinished(new EventHandler<>() {
@@ -143,8 +123,6 @@ public class ExpandedController implements Initializable {
                         System.out.println(stage.getWidth());
                         stage.setWidth(main.returnSceneWidth());
                         stage.setHeight(main.returnSceneHeight());
-                        System.out.println("Screen width: " + main.returnScreenHeight());
-                        System.out.println("Screen height: " + main.returnScreenWidth());
                     } catch (Exception e) {
                         System.out.println("Collapsed screen couldnt load: " + e.getMessage() + " | " + e.getClass().getCanonicalName());
                     }
@@ -155,98 +133,116 @@ public class ExpandedController implements Initializable {
         }
     }
 
-    private void generateButton(Game game) {
-        Button b = new Button();
-        b.setText(game.gameText);
-        b.setStyle(
-                "-fx-background-color: rgba(255, 255, 255, 0);");
-        b.addEventHandler(MouseEvent.MOUSE_ENTERED, new EventHandler<>() {
-            @Override
-            public void handle(MouseEvent e) {
-                Image picture = new Image(game.gameImage.toURI().toString(), expandedScene.getWidth(), expandedScene.getHeight(), false, false);
-                gameImageViewer.setImage(picture);
-                FadeTransition ft = new FadeTransition(Duration.millis(1000), gameImageViewer);
-                ft.setFromValue(0.5);
-                ft.setToValue(1);
-                ft.play();
-                stage.setWidth(width + 18);
-                expandedScene.setAlignment(Pos.TOP_LEFT);
-                b.setCursor(javafx.scene.Cursor.HAND);
-                expandedScene.getChildren().removeAll(gameImageViewer);
-                expandedScene.getChildren().add(gameImageViewer);
-                gamesList.toFront();
-                gameImageViewer.toBack();
-                System.out.println(width);
-            }
-        });
+    private void generateButton(ArrayList<Category> categories) {
+        for (Category category : categories) {
+//            Button buttonCategory = new Button();
+            //using a two-parameter constructor
+            TitledPane tp = new TitledPane(category.category_name,null);
+//applying methods
+            tp.setText(category.category_name);
+//            tp.setContent(new Button("Button"));
+            tp.setText(category.category_name);
+            tp.setStyle(
+                    "-fx-background-color: rgba(255,255,255,0);");
+            tp.setExpanded(false);
+            gamesList.getChildren().add(tp);
+            final VBox vbox = new VBox(0);
 
-        b.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<>() {
-            @Override
-            public void handle(MouseEvent e) {
-                setIsClicked(false);
-                stage.setAlwaysOnTop(false);
 
-                String op = main.getOperatingSystem();
-                System.out.println("Operating System = " + op);
-                System.out.println("mouse clicked");
+            ArrayList<Category.Game> games = category.getGames();
+            for (Category.Game game : games) {
+                Button gameButton = new Button();
+                gameButton.setText(game.gameText);
+                gameButton.setStyle(
+                        "-fx-background-color: rgba(255, 255, 255, 0);");
 
-                if (op.equals("Windows 10") || op.equals("Windows 7")) {
-
-                    Runtime rt = Runtime.getRuntime();
-                    String cmd = "cmd /c start cmd.exe /K \"" + game.gameExe + "\"";
-                    try {
-                        Process proc = rt.exec(cmd);
-//                        proc.destroy();
-                        try {
-                            Thread.sleep(4000);
-                            Runtime.getRuntime().exec("taskkill /f /im cmd.exe");
-
-                        } catch (InterruptedException exc) {
-                            System.out.println(exc.getMessage());
-                        }
-
-                    } catch (IOException ex) {
-                        System.out.println(ex.getMessage());
+                gameButton.addEventHandler(MouseEvent.MOUSE_ENTERED, new EventHandler<>() {
+                    @Override
+                    public void handle(MouseEvent e) {
+                        Image picture = new Image(game.gameImage.toURI().toString(), expandedScene.getWidth(), expandedScene.getHeight(), false, false);
+                        gameImageViewer.setImage(picture);
+                        FadeTransition ft = new FadeTransition(Duration.millis(1000), gameImageViewer);
+                        ft.setFromValue(0.5);
+                        ft.setToValue(1);
+                        ft.play();
+                        stage.setWidth(width + 18);
+                        expandedScene.setAlignment(Pos.TOP_LEFT);
+                        gameButton.setCursor(javafx.scene.Cursor.HAND);
+                        expandedScene.getChildren().removeAll(gameImageViewer);
+                        expandedScene.getChildren().add(gameImageViewer);
+                        gamesList.toFront();
+                        gameImageViewer.toBack();
                     }
-                    System.out.println("Executing command: " + cmd);
-                }
+                });
+                gameButton.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<>() {
+                    @Override
+                    public void handle(MouseEvent e) {
+                        setIsClicked(false);
+                        stage.setAlwaysOnTop(false);
+
+                        String op = main.getOperatingSystem();
+                        System.out.println("Operating System = " + op);
+                        System.out.println("mouse clicked");
+
+                        if (op.equals("Windows 10") || op.equals("Windows 7")) {
+
+                            Runtime rt = Runtime.getRuntime();
+                            String cmd = "cmd /c start cmd.exe /K \"" + game.gameExe + "\"";
+                            try {
+                                Process proc = rt.exec(cmd);
+                                try {
+                                    Thread.sleep(4000);
+                                    Runtime.getRuntime().exec("taskkill /f /im cmd.exe");
+
+                                } catch (InterruptedException exc) {
+                                    System.out.println(exc.getMessage());
+                                }
+
+                            } catch (IOException ex) {
+                                System.out.println(ex.getMessage());
+                            }
+                            System.out.println("Executing command: " + cmd);
+                        }
+                    }
+                });
+                vbox.getChildren().add(gameButton);
+                tp.setContent(vbox);
             }
-        });
-        gamesList.getChildren().add(b);
-    }
-
-    private static String getExtensionOf(String str) {
-        String tempName = str.substring(temp.lastIndexOf('.') + 1, temp.length()).toLowerCase();
-        return tempName;
-    }
-
-    private static void getFileName(ArrayList<String> games){
-        for(String game: games){
-            File file = new File(game);
-            fileExe.add(stripExtension(file.getName()));
         }
     }
 
-    private static void addToListFrom(File folderParam, ArrayList<String> assetArray) {
-        try {
-            for (final File fileEntry : folderParam.listFiles()) {
-                if (fileEntry.isDirectory()) {
-                    System.out.println("Reading files under the folder " + folderParam.getAbsolutePath());
-                    addToListFrom(fileEntry.getAbsoluteFile(), assetArray);
-                } else {
-                    if (fileEntry.isFile()) {
-                        temp = fileEntry.getAbsolutePath();
-                        if (!assetArray.contains(temp)) {
-                            assetArray.add(temp);
-                            System.out.println("added: " + temp);
-                        } else {
-                            System.out.println("Duplicated : " + temp);
+    private static void addToListFrom() {
+        File[] files = folderShortcut.listFiles();
+        if (files == null) {
+            System.out.println("Folder is empty");
+        } else {
+            try {
+                for (final File fileEntry : files) {
+                    if (fileEntry.isDirectory()) {
+                        Category category = new Category(fileEntry.getName());
+                        categories.add(category);
+                        addToCategory(fileEntry.getAbsoluteFile(), category);
+                    } else {
+                        if (fileEntry.isFile()) {
+                            String gameText = stripExtension(fileEntry.getName());
+                            File fileImage = new File(folder + File.separator + "images" + File.separator + gameText + ".jpg");
+                            uncategorized.addGame(fileEntry, gameText, fileImage);
                         }
                     }
                 }
+            } catch (NullPointerException e) {
+                System.out.println("File is empty.");
             }
-        } catch (NullPointerException e) {
-            System.out.println("File is empty.");
+        }
+    }
+
+    private static void addToCategory(File folderParam, Category category) {
+        for (final File fileEntry : folderParam.listFiles()) {
+            if (fileEntry.isFile()) {
+                String gameText = stripExtension(fileEntry.getName());
+                File fileImage = new File(fileEntry.getParentFile().getParentFile().getParentFile().getPath() + File.separator + "images" + File.separator + gameText + ".jpg");
+                category.addGame(fileEntry, gameText, fileImage);
+            }
         }
     }
 
@@ -261,15 +257,38 @@ public class ExpandedController implements Initializable {
         return str.substring(0, pos);
     }
 
-    private static class Game {
-        private String gameText;
-        private File gameExe;
-        private File gameImage;
+    private static class Category {
 
-        Game(File gameExe, String gameText, File gameImage) {
-            this.gameImage = gameImage;
-            this.gameText = gameText;
-            this.gameExe = gameExe;
+        String category_name;
+        ArrayList<Game> games = new ArrayList<>();
+
+        Category(String category_name) {
+            this.category_name = category_name;
+        }
+
+        private ArrayList<Game> getGames() {
+            return this.games;
+        }
+
+        private void addGame(File gameExe, String gameText, File gameImage) {
+            Game game = new Game(gameExe, gameText, gameImage);
+            this.games.add(game);
+        }
+
+        private void removeGames(){
+            this.games.clear();
+        }
+
+        static class Game {
+            private String gameText;
+            private File gameExe;
+            private File gameImage;
+
+            Game(File gameExe, String gameText, File gameImage) {
+                this.gameImage = gameImage;
+                this.gameText = gameText;
+                this.gameExe = gameExe;
+            }
         }
     }
 }
