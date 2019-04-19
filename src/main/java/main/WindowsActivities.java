@@ -46,7 +46,6 @@ public class WindowsActivities {
                 return "Forbidden App: " + forbiddenApps.get(forbiddenApps.indexOf(exe));
             } else {
                 setIsLegal(true);
-//                System.out.println(exe);
                 return exe;
             }
         }
