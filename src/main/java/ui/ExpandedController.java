@@ -41,6 +41,7 @@ public class ExpandedController implements Initializable {
     private VBox gamesList;
     private Main main = new Main();
     private static boolean isClicked = false;
+
     static String temp = "";
     private static ArrayList<Category> categories = new ArrayList<>();
     private static Category uncategorized = new Category("Uncategorized");
@@ -147,7 +148,6 @@ public class ExpandedController implements Initializable {
             tp.setExpanded(false);
             gamesList.getChildren().add(tp);
             final VBox vbox = new VBox(0);
-
 
             ArrayList<Category.Game> games = category.getGames();
             for (Category.Game game : games) {
