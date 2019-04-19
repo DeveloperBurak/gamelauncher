@@ -40,7 +40,7 @@ public class ExpandedController implements Initializable {
     private VBox gamesList;
     private Main main = new Main();
     private static boolean isClicked = false;
-    static String temp = "";
+    private static String temp = "";
     private static ArrayList<Game> gamesWithImage = new ArrayList<>();
     private final double width = main.returnScreenWidth();
     private final double height = main.returnScreenHeight();
@@ -187,8 +187,6 @@ public class ExpandedController implements Initializable {
                 stage.setAlwaysOnTop(false);
 
                 String op = main.getOperatingSystem();
-                System.out.println("Operating System = " + op);
-                System.out.println("mouse clicked");
 
                 if (op.equals("Windows 10") || op.equals("Windows 7")) {
 

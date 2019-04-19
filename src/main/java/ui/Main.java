@@ -12,6 +12,7 @@ import main.WindowsActivities;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
+import java.io.IOException;
 
 
 public class Main extends Application {
@@ -73,57 +74,64 @@ public class Main extends Application {
         stage.setAlwaysOnTop(true);
         stage.setScene(scene);
         stage.show();
+        String op = this.getOperatingSystem();
 
-        final SystemTray tray = SystemTray.getSystemTray();
-        final TrayIcon trayIcon = new TrayIcon(ImageIO.read(getClass().getResource("/images/instagramicon.jpg"))
-                .getScaledInstance(16, 16, 2), "Game Launcher");
-        try {
-            tray.add(trayIcon);
-        } catch (AWTException e) {
-            System.out.println("TrayIcon could not be added.");
-        }
 
-        // longrunning operation runs on different thread
-        Thread thread = new Thread(new Runnable() {
+        if (op.equals("Windows 10") || op.equals("Windows 7")) {
 
-            @Override
-            public void run() {
-                Runnable updater = new Runnable() {
-                    String prevExe = WindowsActivities.checkOpen();
-
-                    @Override
-                    public void run() {
-                        String exe = WindowsActivities.checkOpen(); //start the check open
-                        try {
-                            if (!exe.equals(prevExe)) {
-                                prevExe = exe;
-                                boolean status = WindowsActivities.getIsLegal();
-                                stage.setAlwaysOnTop(status);
-                                System.out.println(exe);
-                            }
-                        } catch (NullPointerException e) {
-                            System.out.println(e.getMessage());
-                        }
-                    }
-                };
-
-                while (true) {
-                    try {
-                        Thread.sleep(200);
-                    } catch (InterruptedException ex) {
-                        System.out.println(ex.getMessage());
-                    }
-
-                    // UI update is run on the Application thread
-                    Platform.runLater(updater);
-                }
+            final SystemTray tray = SystemTray.getSystemTray();
+            final TrayIcon trayIcon = new TrayIcon(ImageIO.read(getClass().getResource("/images/instagramicon.jpg"))
+                    .getScaledInstance(16, 16, 2), "Game Launcher");
+            try {
+                tray.add(trayIcon);
+            } catch (AWTException e) {
+                System.out.println("TrayIcon could not be added.");
             }
 
-        });
-        // don't let thread prevent JVM shutdown
-        thread.setDaemon(true);
-        thread.start();
+            // longrunning operation runs on different thread
+            Thread thread = new Thread(new Runnable() {
+
+                @Override
+                public void run() {
+                    Runnable updater = new Runnable() {
+                        String prevExe = WindowsActivities.checkOpen();
+
+                        @Override
+                        public void run() {
+                            String exe = WindowsActivities.checkOpen(); //start the check open
+                            try {
+                                if (!exe.equals(prevExe)) {
+                                    prevExe = exe;
+                                    boolean status = WindowsActivities.getIsLegal();
+                                    stage.setAlwaysOnTop(status);
+                                    System.out.println(exe);
+                                }
+                            } catch (NullPointerException e) {
+                                System.out.println(e.getMessage());
+                            }
+                        }
+                    };
+
+                    while (true) {
+                        try {
+                            Thread.sleep(200);
+                        } catch (InterruptedException ex) {
+                            System.out.println(ex.getMessage());
+                        }
+
+                        // UI update is run on the Application thread
+                        Platform.runLater(updater);
+                    }
+                }
+
+            });
+            // don't let thread prevent JVM shutdown
+            thread.setDaemon(true);
+            thread.start();
 //       task.run();
+        }
+
+
     }
 
     void changeSceneWithButton(String fxml) throws Exception {
