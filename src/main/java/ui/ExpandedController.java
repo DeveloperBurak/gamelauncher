@@ -103,43 +103,39 @@ public class ExpandedController implements Initializable {
     }
 
     public void collapseScreen() {
-        if (!isClicked) {
-            categories.clear();
-            for(Category category : categories){
-                category.removeGames();
-            }
-            uncategorized.removeGames(); //it should be there, can't delete automatically in for loop
-            TranslateTransition trans = new TranslateTransition(Duration.seconds(1), gamesList);
-            trans.setFromX(0);
-            trans.setToX(-150);
-            // Play the Animation
-            trans.play();
-            trans.setOnFinished(new EventHandler<>() {
-
-                @Override
-                public void handle(ActionEvent event) {
-                    try {
-                        main.changeSceneWithButton("fxml/scene.fxml");
-                        System.out.println(stage.getWidth());
-                        stage.setWidth(main.returnSceneWidth());
-                        stage.setHeight(main.returnSceneHeight());
-                    } catch (Exception e) {
-                        System.out.println("Collapsed screen couldnt load: " + e.getMessage() + " | " + e.getClass().getCanonicalName());
-                    }
-                }
-            });
-
-
+        categories.clear();
+        for (Category category : categories) {
+            category.removeGames();
         }
+        uncategorized.removeGames(); //it should be there, can't delete automatically in for loop
+        TranslateTransition trans = new TranslateTransition(Duration.seconds(1), gamesList);
+        trans.setFromX(0);
+        trans.setToX(-150);
+        // Play the Animation
+        trans.play();
+        trans.setOnFinished(new EventHandler<>() {
+
+            @Override
+            public void handle(ActionEvent event) {
+                try {
+                    main.changeSceneWithButton("fxml/scene.fxml");
+                    stage.setWidth(main.returnSceneWidth());
+                    stage.setHeight(main.returnSceneHeight());
+                } catch (Exception e) {
+                    System.out.println("Collapsed screen couldnt load: " + e.getMessage() + " | " + e.getClass().getCanonicalName());
+                }
+            }
+        });
+
+
     }
 
     private void generateButton(ArrayList<Category> categories) {
         for (Category category : categories) {
 //            Button buttonCategory = new Button();
             //using a two-parameter constructor
-            TitledPane tp = new TitledPane(category.category_name,null);
+            TitledPane tp = new TitledPane(category.category_name, null);
 //applying methods
-            tp.setText(category.category_name);
 //            tp.setContent(new Button("Button"));
             tp.setText(category.category_name);
             tp.setStyle(
@@ -179,6 +175,7 @@ public class ExpandedController implements Initializable {
                     public void handle(MouseEvent e) {
                         setIsClicked(false);
                         stage.setAlwaysOnTop(false);
+                        collapseScreen();
 
                         String op = main.getOperatingSystem();
                         System.out.println("Operating System = " + op);
@@ -275,7 +272,7 @@ public class ExpandedController implements Initializable {
             this.games.add(game);
         }
 
-        private void removeGames(){
+        private void removeGames() {
             this.games.clear();
         }
 
