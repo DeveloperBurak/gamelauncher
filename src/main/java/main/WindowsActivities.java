@@ -12,7 +12,13 @@ import java.util.ArrayList;
 public class WindowsActivities {
     private static boolean isLegal;
     private static final int MAX_TITLE_LENGTH = 1024;
-
+    private static ArrayList<String> forbiddenApps = new ArrayList<>();
+    private String[] predefinedForbiddenApps = {"chrome.exe","opera.exe","Spotify.exe","steam.exe"};
+    public WindowsActivities() {
+        for(String app:predefinedForbiddenApps){
+            forbiddenApps.add(app);
+        }
+    }
     public static void jna() {
         char[] buffer = new char[MAX_TITLE_LENGTH * 2];
         WinDef.HWND hwnd = User32.INSTANCE.GetForegroundWindow();
@@ -23,15 +29,16 @@ public class WindowsActivities {
         System.out.println("rect = " + rect);
     }
 
-    private static ArrayList<String> forbiddenApps() {
-        ArrayList<String> apps = new ArrayList<>();
-        apps.add("chrome.exe");
-        apps.add("opera.exe");
-        apps.add("Spotify.exe");
-        return apps;
+   /* private ArrayList<String> forbiddenApps() {
+        forbiddenApps.add("chrome.exe");
+        return forbiddenApps;
+    }*/
+
+    public void addForbbidenApp(String app){
+        if(app != null)  forbiddenApps.add(app);
     }
 
-    public static String checkOpen() {
+    public static String getOpenedProgram() {
         WinDef.HWND fg = User32.INSTANCE.GetForegroundWindow();
         // don't print the name if it's still the same window as previously
         String fgImageName = getImageName(fg);
@@ -40,7 +47,6 @@ public class WindowsActivities {
         } else {
             String[] exePath = fgImageName.split("\\\\");
             String exe = exePath[exePath.length - 1];
-            ArrayList<String> forbiddenApps = forbiddenApps();
             if (forbiddenApps.contains(exe)) {
                 setIsLegal(false);
                 return "Forbidden App: " + forbiddenApps.get(forbiddenApps.indexOf(exe));
@@ -49,6 +55,10 @@ public class WindowsActivities {
                 return exe;
             }
         }
+    }
+
+    public static void showForbiddenApps(){
+        System.out.println(forbiddenApps);
     }
 
     private static void setIsLegal(boolean status) {

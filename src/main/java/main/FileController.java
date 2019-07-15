@@ -46,4 +46,7 @@ public class FileController {
             }
         }
     }
+    static void getGames(){
+
+    }
 }

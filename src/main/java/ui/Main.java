@@ -19,6 +19,7 @@ public class Main extends Application {
     private static Stage stage;
     private final Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
     private final String OperatingSystem = System.getProperty("os.name");
+    protected static WindowsActivities activity = new WindowsActivities();
 
     public static void main(String[] args) {
         launch(args);
@@ -74,19 +75,10 @@ public class Main extends Application {
         stage.show();
         String op = this.getOperatingSystem();
 
-        final SystemTray tray = SystemTray.getSystemTray();
-        final TrayIcon trayIcon = new TrayIcon(ImageIO.read(getClass().getResource("/images/icon.jpg"))
-                .getScaledInstance(16, 16, 2), "Game Launcher");
-        try {
-            tray.add(trayIcon);
-        } catch (AWTException e) {
-            System.out.println("TrayIcon could not be added.");
-        }
-
-      if (op.equals("Windows 10") || op.equals("Windows 7")) {
+        if (op.equals("Windows 10") || op.equals("Windows 7")) {
 
             final SystemTray tray = SystemTray.getSystemTray();
-            final TrayIcon trayIcon = new TrayIcon(ImageIO.read(getClass().getResource("/images/instagramicon.jpg"))
+            final TrayIcon trayIcon = new TrayIcon(ImageIO.read(getClass().getResource("/images/icon.jpg"))
                     .getScaledInstance(16, 16, 2), "Game Launcher");
             try {
                 tray.add(trayIcon);
@@ -96,21 +88,20 @@ public class Main extends Application {
 
             // longrunning operation runs on different thread
             Thread thread = new Thread(new Runnable() {
-
                 @Override
                 public void run() {
                     Runnable updater = new Runnable() {
-                        String prevExe = WindowsActivities.checkOpen();
-
+                        String prevExe = activity.getOpenedProgram();
                         @Override
                         public void run() {
-                            String exe = WindowsActivities.checkOpen(); //start the check open
+//                            activity.showForbiddenApps();
+                            String exe = activity.getOpenedProgram(); //start the check open
                             try {
                                 if (!exe.equals(prevExe)) {
                                     prevExe = exe;
                                     boolean status = WindowsActivities.getIsLegal();
                                     stage.setAlwaysOnTop(status);
-                                    System.out.println(exe);
+//                                    System.out.println(exe);
                                 }
                             } catch (NullPointerException e) {
                                 System.out.println(e.getMessage());
@@ -120,7 +111,7 @@ public class Main extends Application {
 
                     while (true) {
                         try {
-                            Thread.sleep(200);
+                            Thread.sleep(800);
                         } catch (InterruptedException ex) {
                             System.out.println(ex.getMessage());
                         }
@@ -134,10 +125,7 @@ public class Main extends Application {
             // don't let thread prevent JVM shutdown
             thread.setDaemon(true);
             thread.start();
-//       task.run();
         }
-
-
     }
 
     void changeSceneWithButton(String fxml) throws Exception {

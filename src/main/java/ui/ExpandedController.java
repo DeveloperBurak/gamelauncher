@@ -20,15 +20,12 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import main.FileController;
-
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.ResourceBundle;
-
-import static java.awt.Cursor.HAND_CURSOR;
+import mslinks.ShellLink;
 
 public class ExpandedController implements Initializable {
     @FXML
@@ -40,7 +37,6 @@ public class ExpandedController implements Initializable {
     @FXML
     private VBox gamesList;
     private Main main = new Main();
-    private static boolean isClicked = false;
 
     static String temp = "";
     private static ArrayList<Category> categories = new ArrayList<>();
@@ -65,10 +61,10 @@ public class ExpandedController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         expandedScene.getStylesheets().add(getClass().getClassLoader().getResource("css/style.css").toExternalForm());
+        expandedContainer.setVisible(false);
         stage.setWidth(listWidth);
         stage.setHeight(height);
         expandedScene.setMinSize(0, 0);
-        expandedScene.setPrefSize(expandedContainer.getPrefWidth(), expandedContainer.getPrefHeight()); //didn't work
         stage.setMaxWidth(width);
         gamesList.setPadding(new Insets(labelGameList.getHeight() + 20, 15, 0, 10));
         gamesList.setStyle("-fx-background-color: linear-gradient(to right, rgba(200,200,200,1) 0%, rgba(200,200,200,0.80) 30%,rgba(255,255,255,0.20) 80%, rgba(255,255,255,0.0) 100%)");
@@ -78,29 +74,30 @@ public class ExpandedController implements Initializable {
                 collapseScreen();
             }
         });
-        expandedScene.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<>() {
+        /*expandedScene.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<>() {
             @Override
             public void handle(MouseEvent e) {
-                setIsClicked(true);
+
             }
-        });
+        });*/
 
         categories.add(uncategorized);
         addToListFrom();
         generateButton(categories);
 
         // Set up a Translate Transition for the Text object
-        TranslateTransition trans = new TranslateTransition(Duration.seconds(1), gamesList);
+        TranslateTransition trans = new TranslateTransition(Duration.seconds(1), expandedScene);
+        trans.setOnFinished(new EventHandler<ActionEvent>(){
+
+            @Override
+            public void handle(ActionEvent arg0) {
+                System.out.println("finished");
+            }
+        });
         trans.setFromX(-150);
         trans.setToX(0);
-        // Let the animation run forever
-        trans.setCycleCount(1);
         // Play the Animation
         trans.play();
-    }
-
-    private void setIsClicked(boolean status) {
-        isClicked = status;
     }
 
     public void collapseScreen() {
@@ -173,32 +170,30 @@ public class ExpandedController implements Initializable {
                 gameButton.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<>() {
                     @Override
                     public void handle(MouseEvent e) {
-                        setIsClicked(false);
                         stage.setAlwaysOnTop(false);
                         collapseScreen();
 
                         String op = main.getOperatingSystem();
-                        System.out.println("Operating System = " + op);
-                        System.out.println("mouse clicked");
 
                         if (op.equals("Windows 10") || op.equals("Windows 7")) {
 
-                            Runtime rt = Runtime.getRuntime();
-                            String cmd = "cmd /c start cmd.exe /K \"" + game.gameExe + "\"";
+//                            String cmd = "cmd /c start cmd.exe /K \"" + game.gameExe + "\"";
                             try {
-                                Process proc = rt.exec(cmd);
-                                try {
+                                ProcessBuilder pb = new ProcessBuilder("cmd", "/c", game.gameExe.getAbsolutePath());
+//                                Process proc = Runtime.getRuntime().exec("rundll32 SHELL32.DLL,ShellExec_RunDLL"+ game.gameExe);
+                                Process proc = pb.start();
+                                /*try {
                                     Thread.sleep(4000);
                                     Runtime.getRuntime().exec("taskkill /f /im cmd.exe");
 
                                 } catch (InterruptedException exc) {
                                     System.out.println(exc.getMessage());
-                                }
+                                }*/
 
                             } catch (IOException ex) {
                                 System.out.println(ex.getMessage());
                             }
-                            System.out.println("Executing command: " + cmd);
+//                            System.out.println("Executing command: " + cmd);
                         }
                     }
                 });
@@ -254,6 +249,23 @@ public class ExpandedController implements Initializable {
         return str.substring(0, pos);
     }
 
+    private static String getExeFileName(File file) {
+        // Handle null case specially.
+        String exePath = null;
+        try{
+            try{
+                exePath = new ShellLink(file).resolveTarget();
+            }catch(mslinks.ShellLinkException e){
+                System.out.println(e.getMessage());
+            }
+        }catch ( java.io.IOException e){
+            System.out.println(e.getMessage());
+        }
+        if (exePath == null)  return null;
+        String[] path = exePath.split("\\\\");
+        return path[path.length-1];
+    }
+
     private static class Category {
 
         String category_name;
@@ -285,7 +297,9 @@ public class ExpandedController implements Initializable {
                 this.gameImage = gameImage;
                 this.gameText = gameText;
                 this.gameExe = gameExe;
+                Main.activity.addForbbidenApp(getExeFileName(this.gameExe));
             }
+
         }
     }
 }
