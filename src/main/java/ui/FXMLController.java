@@ -9,7 +9,6 @@ import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.control.TitledPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -19,14 +18,18 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import main.Category;
 import main.FileController;
-import mslinks.ShellLink;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.ResourceBundle;
+
+/*
+ * @todo fix the width problem on width.
+ * */
 
 public class FXMLController implements Initializable {
     @FXML
@@ -41,29 +44,24 @@ public class FXMLController implements Initializable {
     private StackPane expandedScene;
     @FXML
     private VBox gamesList;
-
-    static String temp = "";
     private static ArrayList<Category> categories = new ArrayList<>();
     private static Category uncategorized = new Category("Uncategorized");
     private static Main main = new Main();
-    private Stage stage = main.getStage();
+    private Stage stage = ui.Main.getStage();
     private final double width = main.returnScreenWidth();
     private final double height = main.returnScreenHeight();
     private final double listWidth = width / 10;
-    private final double listHeight = height;
     private static final File folder = FileController.getFolder();
-    private static final File folderImage = FileController.getFolderImage();
     private static final File folderShortcut = FileController.getFolderShortcut();
-    private static final ArrayList<String> fileExe = new ArrayList<>();
-    private static ArrayList<String> shortcuts = new ArrayList<>();
-    private static ArrayList<String> images = new ArrayList<>();
     private static ImageView gameImageViewer = new ImageView();
-    private static javafx.scene.control.Label label = new Label();
-
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        scene.getStylesheets().add(getClass().getClassLoader().getResource("css/style.css").toExternalForm());
+        try {
+            scene.getStylesheets().add(getClass().getClassLoader().getResource("css/style.css").toExternalForm());
+        } catch (NullPointerException e) {
+            System.out.println(e.getMessage());
+        }
         expandButton.setPrefWidth(main.returnSceneWidth() - 5);
         expandButton.setPrefHeight(main.returnSceneHeight() - 5);
         expandedScene.setVisible(false);
@@ -86,19 +84,17 @@ public class FXMLController implements Initializable {
         TranslateTransition trans = new TranslateTransition(Duration.seconds(1), gamesList);
         trans.setFromX(0);
         trans.setToX(-150);
-        // Play the Animation
         trans.play();
+        gameImageViewer.setImage(null);
         trans.setOnFinished(new EventHandler<>() {
-
             @Override
             public void handle(ActionEvent event) {
-                try {
-                    main.changeSceneWithButton("fxml/scene.fxml");
-                    stage.setWidth(main.returnSceneWidth());
-                    stage.setHeight(main.returnSceneHeight());
-                } catch (Exception e) {
-                    System.out.println("Collapsed screen couldnt load: " + e.getMessage() + " | " + e.getClass().getCanonicalName());
-                }
+                System.out.println("Collapsing stage width: " + stage.getWidth());
+                expandedScene.setVisible(false);
+                expandButton.setVisible(true);
+                gamesList.getChildren().clear();
+                stage.setWidth(main.returnSceneWidth());
+                stage.setHeight(main.returnSceneHeight());
             }
         });
     }
@@ -108,6 +104,7 @@ public class FXMLController implements Initializable {
         expandButton.setVisible(false);
         expandedScene.setMinSize(0, 0);
         stage.setWidth(listWidth);
+        System.out.println("stage current width: " + stage.getWidth());
         stage.setHeight(height);
         gamesList.setPadding(new Insets(labelGameList.getHeight() + 20, 15, 0, 10));
         gamesList.setStyle("-fx-background-color: linear-gradient(to right, rgba(200,200,200,1) 0%, rgba(200,200,200,0.80) 30%,rgba(255,255,255,0.20) 80%, rgba(255,255,255,0.0) 100%)");
@@ -117,51 +114,40 @@ public class FXMLController implements Initializable {
                 collapseScreen();
             }
         });
-
         categories.add(uncategorized);
         addToListFrom();
         generateButton(categories);
-
-        // Set up a Translate Transition for the Text object
         TranslateTransition trans = new TranslateTransition(Duration.seconds(1), expandedScene);
-        /*trans.setOnFinished(new EventHandler<ActionEvent>() {
-
-            @Override
-            public void handle(ActionEvent arg0) {
-
-            }
-        });*/
         trans.setFromX(-150);
         trans.setToX(0);
-        // Play the Animation
         trans.play();
-
     }
 
     private void generateButton(ArrayList<Category> categories) {
         for (Category category : categories) {
-            TitledPane tp = new TitledPane(category.category_name, null);
-            tp.setText(category.category_name);
-            tp.setStyle(
-                    "-fx-background-color: rgba(255,255,255,0);");
-            tp.setExpanded(false);
+            TitledPane tp = new TitledPane(category.getCategoryName(), null);
+            tp.setText(category.getCategoryName());
+            tp.setStyle("-fx-background-color: rgba(255,255,255,0);");
+            if (!uncategorized.getCategoryName().equals(tp.getText())) {
+                tp.setExpanded(false);
+            } else {
+                tp.setExpanded(true);
+            }
             gamesList.getChildren().add(tp);
             final VBox vbox = new VBox(0);
-
             ArrayList<Category.Game> games = category.getGames();
             for (Category.Game game : games) {
                 Button gameButton = new Button();
-                gameButton.setText(game.gameText);
-                gameButton.setStyle(
-                        "-fx-background-color: rgba(255, 255, 255, 0);");
+                gameButton.setText(game.getGameText());
+                gameButton.setStyle("-fx-background-color: rgba(255, 255, 255, 0);");
 
                 gameButton.addEventHandler(MouseEvent.MOUSE_ENTERED, new EventHandler<>() {
                     @Override
                     public void handle(MouseEvent e) {
-                        javafx.scene.image.Image picture = new Image(game.gameImage.toURI().toString(), expandedScene.getWidth(), expandedScene.getHeight(), false, false);
+                        javafx.scene.image.Image picture = new Image(game.getGameImage().toURI().toString(), expandedScene.getWidth(), expandedScene.getHeight(), false, false);
                         gameImageViewer.setImage(picture);
                         FadeTransition ft = new FadeTransition(Duration.millis(1000), gameImageViewer);
-                        ft.setFromValue(0.5);
+                        ft.setFromValue(0.1);
                         ft.setToValue(1);
                         ft.play();
                         stage.setWidth(width + 18);
@@ -178,19 +164,14 @@ public class FXMLController implements Initializable {
                     public void handle(MouseEvent e) {
                         stage.setAlwaysOnTop(false);
                         collapseScreen();
-
-                        String op = main.getOperatingSystem();
-
+                        String op = Main.activity.getOperatingSystem();
                         if (op.equals("Windows 10") || op.equals("Windows 7")) {
-
-//                            String cmd = "cmd /c start cmd.exe /K \"" + game.gameExe + "\"";
                             try {
-                                ProcessBuilder pb = new ProcessBuilder("cmd", "/c", game.gameExe.getAbsolutePath());
+                                ProcessBuilder pb = new ProcessBuilder("cmd", "/c", game.getGameExe().getAbsolutePath());
                                 Process proc = pb.start();
                             } catch (IOException ex) {
                                 System.out.println(ex.getMessage());
                             }
-//                            System.out.println("Executing command: " + cmd);
                         }
                     }
                 });
@@ -205,98 +186,19 @@ public class FXMLController implements Initializable {
         if (files == null) {
             System.out.println("Folder is empty");
         } else {
-            try {
-                for (final File fileEntry : files) {
-                    if (fileEntry.isDirectory()) {
-                        Category category = new Category(fileEntry.getName());
-                        categories.add(category);
-                        addToCategory(fileEntry.getAbsoluteFile(), category);
-                    } else {
-                        if (fileEntry.isFile()) {
-                            String gameText = stripExtension(fileEntry.getName());
-                            File fileImage = new File(folder + File.separator + "images" + File.separator + gameText + ".jpg");
-                            uncategorized.addGame(fileEntry, gameText, fileImage);
-                        }
+            for (final File fileEntry : files) {
+                if (fileEntry.isDirectory()) {
+                    Category category = new Category(fileEntry.getName());
+                    categories.add(category);
+                    category.addGamesFromFolder(fileEntry.getAbsoluteFile());
+                } else {
+                    if (fileEntry.isFile()) {
+                        String gameText = helper.File.stripExtension(fileEntry.getName());
+                        File fileImage = new File(folder + File.separator + "images" + File.separator + gameText + ".jpg");
+                        uncategorized.addGame(fileEntry, gameText, fileImage);
                     }
                 }
-            } catch (NullPointerException e) {
-                System.out.println("File is empty.");
             }
-        }
-    }
-
-    private static void addToCategory(File folderParam, Category category) {
-        for (final File fileEntry : folderParam.listFiles()) {
-            if (fileEntry.isFile()) {
-                String gameText = stripExtension(fileEntry.getName());
-                File fileImage = new File(fileEntry.getParentFile().getParentFile().getParentFile().getPath() + File.separator + "images" + File.separator + gameText + ".jpg");
-                category.addGame(fileEntry, gameText, fileImage);
-            }
-        }
-    }
-
-    private static String stripExtension(String str) {
-        // Handle null case specially.
-        if (str == null) return null;
-        // Get position of last '.'.
-        int pos = str.lastIndexOf(".");
-        // If there wasn't any '.' just return the string as is.
-        if (pos == -1) return str;
-        // Otherwise return the string, up to the dot.
-        return str.substring(0, pos);
-    }
-
-    private static String getExeFileName(File file) {
-        // Handle null case specially.
-        String exePath = null;
-        try {
-            try {
-                exePath = new ShellLink(file).resolveTarget();
-            } catch (mslinks.ShellLinkException e) {
-//                System.out.println(e.getMessage());
-            }
-        } catch (java.io.IOException e) {
-//            System.out.println(e.getMessage());
-        }
-        if (exePath == null) return null;
-        String[] path = exePath.split("\\\\");
-        return path[path.length - 1];
-    }
-
-    private static class Category {
-
-        String category_name;
-        ArrayList<Category.Game> games = new ArrayList<>();
-
-        Category(String category_name) {
-            this.category_name = category_name;
-        }
-
-        private ArrayList<Category.Game> getGames() {
-            return this.games;
-        }
-
-        private void addGame(File gameExe, String gameText, File gameImage) {
-            Category.Game game = new Category.Game(gameExe, gameText, gameImage);
-            this.games.add(game);
-        }
-
-        private void removeGames() {
-            this.games.clear();
-        }
-
-        static class Game {
-            private String gameText;
-            private File gameExe;
-            private File gameImage;
-
-            Game(File gameExe, String gameText, File gameImage) {
-                this.gameImage = gameImage;
-                this.gameText = gameText;
-                this.gameExe = gameExe;
-                Main.activity.addForbbidenApp(getExeFileName(this.gameExe));
-            }
-
         }
     }
 

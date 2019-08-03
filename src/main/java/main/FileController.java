@@ -5,7 +5,7 @@ import java.io.IOException;
 
 public class FileController {
 
-    public static final File folder = new File(System.getProperty("user.home")+"/Documents/Game Launcher");
+    private static final File folder = new File(System.getProperty("user.home")+"/Documents/Game Launcher");
     private static final File folderImage = new File(folder.getPath() +File.separator+ "images"+File.separator);
     private static final File folderShortcut = new File(folder.getPath() +File.separator+ "shortcuts"+File.separator);
 
@@ -45,8 +45,5 @@ public class FileController {
                 System.out.println(folderShortcut.getName() + " couldn't created.");
             }
         }
-    }
-    static void getGames(){
-
     }
 }

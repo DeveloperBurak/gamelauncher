@@ -1,3 +1,5 @@
+.root { -fx-background-color:rgba(0,0,0,0); }
+
 .titled-pane
 {
 -fx-text-fill: -fx-text-base-color;

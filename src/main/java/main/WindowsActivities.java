@@ -8,17 +8,22 @@ import com.sun.jna.platform.win32.WinNT;
 import com.sun.jna.ptr.IntByReference;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class WindowsActivities {
     private static boolean isLegal;
     private static final int MAX_TITLE_LENGTH = 1024;
-    private static ArrayList<String> forbiddenApps = new ArrayList<>();
-    private String[] predefinedForbiddenApps = {"chrome.exe","opera.exe","Spotify.exe","steam.exe"};
+    private static final String[] predefinedForbiddenApps = {"chrome.exe","opera.exe","Spotify.exe","steam.exe"};
+    private static ArrayList<String> forbiddenApps = new ArrayList<>(Arrays.asList(predefinedForbiddenApps));
+    private final String OperatingSystem = System.getProperty("os.name");
+
     public WindowsActivities() {
-        for(String app:predefinedForbiddenApps){
-            forbiddenApps.add(app);
-        }
+
     }
+    public String getOperatingSystem() {
+        return OperatingSystem;
+    }
+
     public static void jna() {
         char[] buffer = new char[MAX_TITLE_LENGTH * 2];
         WinDef.HWND hwnd = User32.INSTANCE.GetForegroundWindow();
@@ -29,12 +34,7 @@ public class WindowsActivities {
         System.out.println("rect = " + rect);
     }
 
-   /* private ArrayList<String> forbiddenApps() {
-        forbiddenApps.add("chrome.exe");
-        return forbiddenApps;
-    }*/
-
-    public void addForbbidenApp(String app){
+    void addForbbidenApp(String app){
         if(app != null)  forbiddenApps.add(app);
     }
 
@@ -69,27 +69,22 @@ public class WindowsActivities {
         return isLegal;
     }
 
-
     private static String getImageName(WinDef.HWND window) {
         // Get the process ID of the window
         IntByReference procId = new IntByReference();
         User32.INSTANCE.GetWindowThreadProcessId(window, procId);
-
         // Open the process to get permissions to the image name
         WinNT.HANDLE procHandle = Kernel32.INSTANCE.OpenProcess(
                 Kernel32.PROCESS_QUERY_LIMITED_INFORMATION,
                 false,
                 procId.getValue()
         );
-
         // Get the image name
         char[] buffer = new char[4096];
         IntByReference bufferSize = new IntByReference(buffer.length);
         boolean success = Kernel32.INSTANCE.QueryFullProcessImageName(procHandle, 0, buffer, bufferSize);
-
         // Clean up: close the opened process
         Kernel32.INSTANCE.CloseHandle(procHandle);
-
         return success ? new String(buffer, 0, bufferSize.getValue()) : null;
     }
 }

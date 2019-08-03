@@ -6,6 +6,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import main.WindowsActivities;
@@ -18,8 +19,7 @@ import java.io.IOException;
 public class Main extends Application {
     private static Stage stage;
     private final Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
-    private final String OperatingSystem = System.getProperty("os.name");
-    protected static WindowsActivities activity = new WindowsActivities();
+    public static WindowsActivities activity = new WindowsActivities();
 
     public static void main(String[] args) {
         launch(args);
@@ -27,10 +27,6 @@ public class Main extends Application {
 
     static Stage getStage() {
         return stage;
-    }
-
-    String getOperatingSystem() {
-        return OperatingSystem;
     }
 
     static void setStage(Stage stage) {
@@ -62,8 +58,9 @@ public class Main extends Application {
 
         Parent root = FXMLLoader.load(getClass().getResource("/fxml/scene.fxml"));
         Scene scene = new Scene(root, sceneWidth, sceneHeight);
+        scene.setFill(Color.TRANSPARENT);
         stage.setTitle("Game Launcher");
-        stage.initStyle(StageStyle.UNDECORATED);
+        stage.initStyle(StageStyle.TRANSPARENT);
         stage.setX(0);
         stage.setY(0);
         stage.setHeight(sceneHeight);
@@ -73,7 +70,7 @@ public class Main extends Application {
         stage.setAlwaysOnTop(true);
         stage.setScene(scene);
         stage.show();
-        String op = this.getOperatingSystem();
+        String op = activity.getOperatingSystem();
 
         if (op.equals("Windows 10") || op.equals("Windows 7")) {
 
@@ -91,11 +88,11 @@ public class Main extends Application {
                 @Override
                 public void run() {
                     Runnable updater = new Runnable() {
-                        String prevExe = activity.getOpenedProgram();
+                        String prevExe = WindowsActivities.getOpenedProgram();
                         @Override
                         public void run() {
 //                            activity.showForbiddenApps();
-                            String exe = activity.getOpenedProgram(); //start the check open
+                            String exe = WindowsActivities.getOpenedProgram(); //start the check open
                             try {
                                 if (!exe.equals(prevExe)) {
                                     prevExe = exe;
@@ -125,23 +122,6 @@ public class Main extends Application {
             // don't let thread prevent JVM shutdown
             thread.setDaemon(true);
             thread.start();
-        }
-    }
-
-    void changeSceneWithButton(String fxml) throws Exception {
-        Parent root = null;
-        try {
-            root = FXMLLoader.load(getClass().getClassLoader().getResource(fxml));
-        } catch (NullPointerException e) {
-            System.out.println(e.getMessage());
-        }
-        if (root != null) {
-            if (stage == null) {
-                System.out.println("belirtilen yol yok.");
-                System.out.println("stage boş");
-            } else {
-                stage.setScene(new Scene(root));
-            }
         }
     }
 }
