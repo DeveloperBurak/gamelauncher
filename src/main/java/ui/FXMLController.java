@@ -1,25 +1,33 @@
 package ui;
 
+import helper.FileHelper;
 import javafx.animation.FadeTransition;
 import javafx.animation.TranslateTransition;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.TitledPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import main.Category;
 import main.FileController;
+import main.WindowsActivities;
 
 import java.io.File;
 import java.io.IOException;
@@ -54,6 +62,7 @@ public class FXMLController implements Initializable {
     private static final File folder = FileController.getFolder();
     private static final File folderShortcut = FileController.getFolderShortcut();
     private static ImageView gameImageViewer = new ImageView();
+    static boolean steamInfoFetched = false;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -64,63 +73,110 @@ public class FXMLController implements Initializable {
         }
         expandButton.setPrefWidth(main.returnSceneWidth() - 5);
         expandButton.setPrefHeight(main.returnSceneHeight() - 5);
+        setStyles();
         expandedScene.setVisible(false);
-        stage.setX(-8);
+        categories.add(uncategorized);
+        addToListFromRoot();
+        generateButton(categories);
+        Thread steamThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Runnable updater = new Runnable() {
+                    @Override
+                    public void run() {
+                        checkAndGetSteamUser();
+                    }
+                };
+                while (!steamInfoFetched) {
+                    try {
+                        Thread.sleep(800);
+                    } catch (InterruptedException ex) {
+                        System.out.println(ex.getMessage());
+                    }
+                }
+                // UI update is run on the Application thread
+                Platform.runLater(updater);
+            }
+        });
+        // don't let thread prevent JVM shutdown
+        steamThread.setDaemon(true);
+        steamThread.start();
         expandButton.addEventHandler(MouseEvent.MOUSE_ENTERED, new EventHandler<>() {
             @Override
             public void handle(MouseEvent e) {
                 showExpandedScene();
             }
         });
-    }
-
-
-    public void collapseScreen() {
-        categories.clear();
-        for (Category category : categories) {
-            category.removeGames();
-        }
-        uncategorized.removeGames(); //it should be there, can't delete automatically in for loop
-        TranslateTransition trans = new TranslateTransition(Duration.seconds(1), gamesList);
-        trans.setFromX(0);
-        trans.setToX(-150);
-        trans.play();
-        gameImageViewer.setImage(null);
-        trans.setOnFinished(new EventHandler<>() {
+        expandedScene.addEventHandler(MouseEvent.MOUSE_EXITED, new EventHandler<MouseEvent>() {
             @Override
-            public void handle(ActionEvent event) {
-                System.out.println("Collapsing stage width: " + stage.getWidth());
-                expandedScene.setVisible(false);
-                expandButton.setVisible(true);
-                gamesList.getChildren().clear();
-                stage.setWidth(main.returnSceneWidth());
-                stage.setHeight(main.returnSceneHeight());
+            public void handle(MouseEvent mouseEvent) {
+                collapseScreen();
             }
         });
     }
 
+    private void checkAndGetSteamUser(){
+        if(steamInfoFetched){
+            Label labelSteamName = new Label("Hoşgeldiniz " + ui.Main.userInfo.getRealName(),null);
+            gamesList.getChildren().add(0,labelSteamName);
+            labelSteamName.setStyle("-fx-font-weight: bold;");
+        }
+    }
+
+    private void setStyles(){
+        centerItems(expandButton);
+    }
+
+
+    private void collapseScreen() {
+        System.out.println("Collapsing...");
+        categories.clear();
+        for (Category category : categories) {
+            category.removeGames();
+        }
+        uncategorized.removeGames();
+        gameImageViewer.setImage(null);
+        expandedScene.setVisible(false);
+        expandButton.setVisible(true);
+        stage.setWidth(expandButton.getWidth());
+        stage.setHeight(expandButton.getHeight());
+
+//        FadeTransition ft = new FadeTransition();
+//        ft.setDuration(Duration.seconds(1));
+//        ft.setNode(gamesList);
+//        ft.setFromValue(1);
+//        ft.setToValue(0);
+//        ft.play();
+    }
+
     private void showExpandedScene() {
-        expandedScene.setVisible(true);
         expandButton.setVisible(false);
+        expandedScene.setVisible(true);
         expandedScene.setMinSize(0, 0);
         stage.setWidth(listWidth);
-        System.out.println("stage current width: " + stage.getWidth());
         stage.setHeight(height);
         gamesList.setPadding(new Insets(labelGameList.getHeight() + 20, 15, 0, 10));
         gamesList.setStyle("-fx-background-color: linear-gradient(to right, rgba(200,200,200,1) 0%, rgba(200,200,200,0.80) 30%,rgba(255,255,255,0.20) 80%, rgba(255,255,255,0.0) 100%)");
+        gamesList.setMaxWidth(listWidth);
         gameImageViewer.addEventHandler(MouseEvent.MOUSE_ENTERED, new EventHandler<>() {
             @Override
             public void handle(MouseEvent e) {
                 collapseScreen();
             }
         });
-        categories.add(uncategorized);
-        addToListFrom();
-        generateButton(categories);
+
+
         TranslateTransition trans = new TranslateTransition(Duration.seconds(1), expandedScene);
         trans.setFromX(-150);
         trans.setToX(0);
         trans.play();
+        trans.setOnFinished(new EventHandler<>() {
+            @Override
+            public void handle(ActionEvent event) {
+                System.out.println("Stage Coordinates : \n X: " + stage.getX() + " \n Y: " + stage.getY());
+                System.out.println("Stage Sizes : \n X: " + stage.getWidth() + " \n Y: " + stage.getHeight());
+            }
+        });
     }
 
     private void generateButton(ArrayList<Category> categories) {
@@ -140,17 +196,17 @@ public class FXMLController implements Initializable {
                 Button gameButton = new Button();
                 gameButton.setText(game.getGameText());
                 gameButton.setStyle("-fx-background-color: rgba(255, 255, 255, 0);");
-
                 gameButton.addEventHandler(MouseEvent.MOUSE_ENTERED, new EventHandler<>() {
                     @Override
                     public void handle(MouseEvent e) {
+                        stage.setWidth(width + 18);
+                        gameImageViewer.setImage(null);
                         javafx.scene.image.Image picture = new Image(game.getGameImage().toURI().toString(), expandedScene.getWidth(), expandedScene.getHeight(), false, false);
                         gameImageViewer.setImage(picture);
                         FadeTransition ft = new FadeTransition(Duration.millis(1000), gameImageViewer);
                         ft.setFromValue(0.1);
                         ft.setToValue(1);
                         ft.play();
-                        stage.setWidth(width + 18);
                         expandedScene.setAlignment(Pos.TOP_LEFT);
                         gameButton.setCursor(javafx.scene.Cursor.HAND);
                         expandedScene.getChildren().removeAll(gameImageViewer);
@@ -163,12 +219,23 @@ public class FXMLController implements Initializable {
                     @Override
                     public void handle(MouseEvent e) {
                         stage.setAlwaysOnTop(false);
-                        collapseScreen();
-                        String op = Main.activity.getOperatingSystem();
+                        String op = WindowsActivities.getOperatingSystem();
                         if (op.equals("Windows 10") || op.equals("Windows 7")) {
                             try {
-                                ProcessBuilder pb = new ProcessBuilder("cmd", "/c", game.getGameExe().getAbsolutePath());
-                                Process proc = pb.start();
+                                if (game.checkGameExist()) {
+                                    ProcessBuilder pb = new ProcessBuilder("cmd", "/c", game.getGameExe().getAbsolutePath());
+                                    System.out.println("Program starting");
+                                    Process proc = pb.start();
+//                                    System.out.println(pb.command());
+                                } else{
+                                    game.getGameExe().delete();
+                                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                                    alert.setTitle("Game Launcher");
+                                    alert.setHeaderText(null);
+                                    alert.setContentText("Program Not Found: " + game.getGameText());
+                                    alert.showAndWait();
+                                }
+                                collapseScreen();
                             } catch (IOException ex) {
                                 System.out.println(ex.getMessage());
                             }
@@ -181,7 +248,7 @@ public class FXMLController implements Initializable {
         }
     }
 
-    private static void addToListFrom() {
+    private static void addToListFromRoot() {
         File[] files = folderShortcut.listFiles();
         if (files == null) {
             System.out.println("Folder is empty");
@@ -193,7 +260,7 @@ public class FXMLController implements Initializable {
                     category.addGamesFromFolder(fileEntry.getAbsoluteFile());
                 } else {
                     if (fileEntry.isFile()) {
-                        String gameText = helper.File.stripExtension(fileEntry.getName());
+                        String gameText = FileHelper.stripExtension(fileEntry.getName());
                         File fileImage = new File(folder + File.separator + "images" + File.separator + gameText + ".jpg");
                         uncategorized.addGame(fileEntry, gameText, fileImage);
                     }
@@ -202,7 +269,7 @@ public class FXMLController implements Initializable {
         }
     }
 
-    public void centered() {
+    public void centerItems(Region node) {
         double width = 0;
         double height = 0;
         try {
@@ -211,7 +278,7 @@ public class FXMLController implements Initializable {
         } catch (NullPointerException e) {
             System.out.println(e.getMessage());
         }
-        expandButton.setLayoutX(width / 2 - expandButton.getWidth() / 2);
-        expandButton.setLayoutY(height / 2 - expandButton.getHeight() / 2);
+        node.setLayoutX(width / 2 - node.getWidth() / 2);
+        node.setLayoutY(height / 2 - node.getHeight() / 2);
     }
 }

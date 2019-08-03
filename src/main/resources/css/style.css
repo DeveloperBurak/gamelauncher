@@ -22,7 +22,7 @@
 
 .titled-pane:focused > .title
 {
--fx-color: "rgba(100,100,100,0.6)";
+-fx-color: "rgba(255,100,100,0.6)";
 }
 
 .titled-pane > .title > .arrow-button

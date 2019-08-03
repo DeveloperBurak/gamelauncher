@@ -9,28 +9,24 @@ import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import main.Steam;
 import main.WindowsActivities;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
-import java.io.IOException;
 
 
 public class Main extends Application {
     private static Stage stage;
     private final Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
     public static WindowsActivities activity = new WindowsActivities();
-
+    static Steam.SteamUser userInfo;
     public static void main(String[] args) {
         launch(args);
     }
 
     static Stage getStage() {
         return stage;
-    }
-
-    static void setStage(Stage stage) {
-        Main.stage = stage;
     }
 
     double returnScreenWidth() {
@@ -63,14 +59,14 @@ public class Main extends Application {
         stage.initStyle(StageStyle.TRANSPARENT);
         stage.setX(0);
         stage.setY(0);
-        stage.setHeight(sceneHeight);
-        stage.setWidth(sceneWidth);
+//        stage.setHeight(sceneHeight);
+//        stage.setWidth(sceneWidth);
         stage.getIcons().add(new Image(getClass().getResourceAsStream("/images/icon.jpg")));
         stage.setIconified(false);
         stage.setAlwaysOnTop(true);
         stage.setScene(scene);
         stage.show();
-        String op = activity.getOperatingSystem();
+        String op = WindowsActivities.getOperatingSystem();
 
         if (op.equals("Windows 10") || op.equals("Windows 7")) {
 
@@ -89,16 +85,16 @@ public class Main extends Application {
                 public void run() {
                     Runnable updater = new Runnable() {
                         String prevExe = WindowsActivities.getOpenedProgram();
+
                         @Override
                         public void run() {
-//                            activity.showForbiddenApps();
-                            String exe = WindowsActivities.getOpenedProgram(); //start the check open
+                            String exe = WindowsActivities.getOpenedProgram();
                             try {
-                                if (!exe.equals(prevExe)) {
+                                if (!exe.equals(prevExe)) { // check the opened program every 800ms. anchor: $1
                                     prevExe = exe;
-                                    boolean status = WindowsActivities.getIsLegal();
+                                    boolean status = WindowsActivities.isLegalProgram(prevExe);
+                                    WindowsActivities.showForbiddenApps();
                                     stage.setAlwaysOnTop(status);
-//                                    System.out.println(exe);
                                 }
                             } catch (NullPointerException e) {
                                 System.out.println(e.getMessage());
@@ -108,20 +104,41 @@ public class Main extends Application {
 
                     while (true) {
                         try {
-                            Thread.sleep(800);
+                            Thread.sleep(800); // $1
                         } catch (InterruptedException ex) {
                             System.out.println(ex.getMessage());
                         }
-
                         // UI update is run on the Application thread
                         Platform.runLater(updater);
                     }
                 }
-
             });
             // don't let thread prevent JVM shutdown
             thread.setDaemon(true);
             thread.start();
         }
+
+
+        Thread steamThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Runnable updater = new Runnable() {
+                    @Override
+                    public void run() {
+                        main.Main.steam.initUser("devadam01");
+                        if (Steam.getUser() != null) {
+                            System.out.println("tes");
+                            userInfo = Steam.getUser();
+                            FXMLController.steamInfoFetched = true;
+                        }
+//                        FXMLController.steamInfoFetched = true;
+                    }
+                };
+                Platform.runLater(updater);
+            }
+        });
+        // don't let thread prevent JVM shutdown
+        steamThread.setDaemon(true);
+        steamThread.start();
     }
 }

@@ -13,14 +13,11 @@ import java.util.Arrays;
 public class WindowsActivities {
     private static boolean isLegal;
     private static final int MAX_TITLE_LENGTH = 1024;
-    private static final String[] predefinedForbiddenApps = {"chrome.exe","opera.exe","Spotify.exe","steam.exe"};
+    private static final String[] predefinedForbiddenApps = {"chrome.exe", "opera.exe", "Spotify.exe", "steam.exe"};
     private static ArrayList<String> forbiddenApps = new ArrayList<>(Arrays.asList(predefinedForbiddenApps));
-    private final String OperatingSystem = System.getProperty("os.name");
+    private static final String OperatingSystem = System.getProperty("os.name");
 
-    public WindowsActivities() {
-
-    }
-    public String getOperatingSystem() {
+    public static String getOperatingSystem() {
         return OperatingSystem;
     }
 
@@ -34,8 +31,8 @@ public class WindowsActivities {
         System.out.println("rect = " + rect);
     }
 
-    void addForbbidenApp(String app){
-        if(app != null)  forbiddenApps.add(app);
+    void addForbbidenApp(String app) {
+        if (app != null) forbiddenApps.add(app);
     }
 
     public static String getOpenedProgram() {
@@ -46,18 +43,11 @@ public class WindowsActivities {
             return "Failed to get the image name!";
         } else {
             String[] exePath = fgImageName.split("\\\\");
-            String exe = exePath[exePath.length - 1];
-            if (forbiddenApps.contains(exe)) {
-                setIsLegal(false);
-                return "Forbidden App: " + forbiddenApps.get(forbiddenApps.indexOf(exe));
-            } else {
-                setIsLegal(true);
-                return exe;
-            }
+            return exePath[exePath.length - 1];
         }
     }
 
-    public static void showForbiddenApps(){
+    public static void showForbiddenApps() {
         System.out.println(forbiddenApps);
     }
 
@@ -65,8 +55,8 @@ public class WindowsActivities {
         isLegal = status;
     }
 
-    public static boolean getIsLegal() {
-        return isLegal;
+    public static boolean isLegalProgram(String app) {
+        return (!forbiddenApps.contains(app));
     }
 
     private static String getImageName(WinDef.HWND window) {

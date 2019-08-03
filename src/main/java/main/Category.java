@@ -90,7 +90,7 @@ public class Category {
             this.gameImage = gameImage;
             this.gameText = gameText;
             this.gameExe = gameExe;
-            ui.Main.activity.addForbbidenApp(this.getTargetExePath());
+            ui.Main.activity.addForbbidenApp(FileHelper.getFileNameWithExtension(FileHelper.strToFile(this.getTargetExePath())));
         }
     }
 }
