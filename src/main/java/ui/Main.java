@@ -5,6 +5,7 @@ import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
@@ -21,6 +22,7 @@ public class Main extends Application {
     private final Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
     public static WindowsActivities activity = new WindowsActivities();
     static Steam.SteamUser userInfo;
+
     public static void main(String[] args) {
         launch(args);
     }
@@ -59,13 +61,10 @@ public class Main extends Application {
         stage.initStyle(StageStyle.TRANSPARENT);
         stage.setX(0);
         stage.setY(0);
-//        stage.setHeight(sceneHeight);
-//        stage.setWidth(sceneWidth);
         stage.getIcons().add(new Image(getClass().getResourceAsStream("/images/icon.jpg")));
         stage.setIconified(false);
         stage.setAlwaysOnTop(true);
         stage.setScene(scene);
-        stage.show();
         String op = WindowsActivities.getOperatingSystem();
 
         if (op.equals("Windows 10") || op.equals("Windows 7")) {
@@ -93,7 +92,7 @@ public class Main extends Application {
                                 if (!exe.equals(prevExe)) { // check the opened program every 800ms. anchor: $1
                                     prevExe = exe;
                                     boolean status = WindowsActivities.isLegalProgram(prevExe);
-                                    WindowsActivities.showForbiddenApps();
+//                                    WindowsActivities.showForbiddenApps();
                                     stage.setAlwaysOnTop(status);
                                 }
                             } catch (NullPointerException e) {
@@ -125,9 +124,15 @@ public class Main extends Application {
                 Runnable updater = new Runnable() {
                     @Override
                     public void run() {
-                        main.Main.steam.initUser("devadam01");
+//                        main.Main.steam.initUser("devadam01");
+                        boolean isSteamUserExists = Steam.isExistsUserProperties();
+                        if (!isSteamUserExists) {
+                            FXMLController.firstSteamUser = true;
+                            FXMLController.openSteamUser();
+                        }else{
+                            System.out.println("exists");
+                        }
                         if (Steam.getUser() != null) {
-                            System.out.println("tes");
                             userInfo = Steam.getUser();
                             FXMLController.steamInfoFetched = true;
                         }
@@ -135,10 +140,20 @@ public class Main extends Application {
                     }
                 };
                 Platform.runLater(updater);
+
+                while (!FXMLController.steamInfoFetched && !FXMLController.firstSteamUser) {
+                    try {
+                        System.out.println("user fething...");
+                        Thread.sleep(2000);
+                    } catch (InterruptedException ex) {
+                        System.out.println(ex.getMessage());
+                    }
+                }
             }
         });
         // don't let thread prevent JVM shutdown
         steamThread.setDaemon(true);
         steamThread.start();
+        stage.show();
     }
 }

@@ -40,4 +40,5 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
     implementation fileTree(dir: 'src/libs', include: ['*.jar'])
     implementation 'com.google.code.gson:gson:2.8.5'
+    testImplementation 'com.google.code.findbugs:jsr305:3.0.2'
 }

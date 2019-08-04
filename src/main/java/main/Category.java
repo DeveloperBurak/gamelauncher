@@ -4,6 +4,7 @@ import helper.FileHelper;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Properties;
 
 public class Category {
     private String category_name;
@@ -53,7 +54,13 @@ public class Category {
             if (extension.equals("lnk")) {
                 System.out.println("lnk found, real path: "+FileHelper.getRealExePath(this.gameExe));
                 return FileHelper.getRealExePath(this.gameExe);
-            } else {
+            } else if(extension.equals("url")){
+                System.out.println("Url Found");
+                helper.Windows.readInternetShortcutProperties(this.gameExe);
+//                System.out.println("Url target: "+prop.getProperty("target"));
+//                System.out.println("url");
+                return extension;
+            }else{
                 return extension;
             }
         }

@@ -8,6 +8,7 @@ public class Main {
             System.out.println("Folders are writing...");
             FileController.writeFiles();
         }
+
         setScreen(args);
     }
 

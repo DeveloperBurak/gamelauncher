@@ -12,10 +12,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TitledPane;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
@@ -27,12 +24,15 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 import main.Category;
 import main.FileController;
+import main.Steam;
 import main.WindowsActivities;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 /*
@@ -63,6 +63,7 @@ public class FXMLController implements Initializable {
     private static final File folderShortcut = FileController.getFolderShortcut();
     private static ImageView gameImageViewer = new ImageView();
     static boolean steamInfoFetched = false;
+    static boolean firstSteamUser = false;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -101,6 +102,7 @@ public class FXMLController implements Initializable {
         // don't let thread prevent JVM shutdown
         steamThread.setDaemon(true);
         steamThread.start();
+
         expandButton.addEventHandler(MouseEvent.MOUSE_ENTERED, new EventHandler<>() {
             @Override
             public void handle(MouseEvent e) {
@@ -113,6 +115,39 @@ public class FXMLController implements Initializable {
                 collapseScreen();
             }
         });
+    }
+
+    static void openSteamUser(){
+        if(firstSteamUser){
+            Alert userIsWantSteamDialog = new Alert(Alert.AlertType.CONFIRMATION);
+            userIsWantSteamDialog.setContentText("Test?");
+            userIsWantSteamDialog.setTitle("Game Launcher");
+            userIsWantSteamDialog.setHeaderText(null);
+            userIsWantSteamDialog.setContentText("Steam User Not Found. Do you Want add?");
+            userIsWantSteamDialog.showAndWait();
+            Optional<ButtonType> result = userIsWantSteamDialog.showAndWait();
+            if(result.get() == ButtonType.OK){
+                TextInputDialog dialog = new TextInputDialog();
+                dialog.setTitle("Game Launcher");
+                dialog.setHeaderText("Enter your Steam URL name");
+                dialog.setContentText("Name:");
+                Optional<String> userInput = dialog.showAndWait();
+
+                result.ifPresent(name -> {
+                    try{
+                        if(userInput.get().length() > 0){
+                            Steam.initUser(userInput.get());
+                            System.out.println(userInput.get());
+                        }else{
+                            System.out.println("not entered");
+                        }
+                    }catch (NoSuchElementException e){
+                        System.out.println(e.getMessage());
+                    }
+                });
+            }
+        }
+
     }
 
     private void checkAndGetSteamUser(){
@@ -269,7 +304,7 @@ public class FXMLController implements Initializable {
         }
     }
 
-    public void centerItems(Region node) {
+    private void centerItems(Region node) {
         double width = 0;
         double height = 0;
         try {

@@ -18,7 +18,7 @@ public class FileHelper {
         try {
             try {
                 exePath = new ShellLink(file).resolveTarget();
-                System.out.println("resolved: " + exePath);
+//                System.out.println("resolved: " + exePath);
             } catch (mslinks.ShellLinkException e) {
 //                System.out.println(e.getMessage());
             }
