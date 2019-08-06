@@ -2,16 +2,14 @@ package ui;
 
 import helper.FileHelper;
 import javafx.animation.FadeTransition;
+import javafx.animation.RotateTransition;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
-import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -20,6 +18,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import main.Category;
@@ -51,7 +50,9 @@ public class FXMLController implements Initializable {
     @FXML
     private StackPane expandedScene;
     @FXML
-    private VBox gamesList;
+    private VBox container;
+    //    @FXML
+//    private Button refreshButton;
     private static ArrayList<Category> categories = new ArrayList<>();
     private static Category uncategorized = new Category("Uncategorized");
     private static Main main = new Main();
@@ -64,6 +65,7 @@ public class FXMLController implements Initializable {
     private static ImageView gameImageViewer = new ImageView();
     static boolean steamInfoFetched = false;
     static boolean firstSteamUser = false;
+    private VBox gamesList = new VBox();
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -72,10 +74,12 @@ public class FXMLController implements Initializable {
         } catch (NullPointerException e) {
             System.out.println(e.getMessage());
         }
+
         expandButton.setPrefWidth(main.returnSceneWidth() - 5);
         expandButton.setPrefHeight(main.returnSceneHeight() - 5);
         setStyles();
         expandedScene.setVisible(false);
+        container.getChildren().add(gamesList);
         categories.add(uncategorized);
         addToListFromRoot();
         generateButton(categories);
@@ -109,67 +113,84 @@ public class FXMLController implements Initializable {
                 showExpandedScene();
             }
         });
+
         expandedScene.addEventHandler(MouseEvent.MOUSE_EXITED, new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent mouseEvent) {
                 collapseScreen();
             }
         });
+
+        Button refreshButton = new Button();
+        try{
+            refreshButton.setGraphic(new ImageView(new Image(this.getClass().getResourceAsStream("/images/icons/sync.jpg"), 30, 30, false, false)));
+            refreshButton.setStyle("-fx-background-color: transparent;");
+            container.getChildren().add(0, refreshButton);
+            refreshButton.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<>() {
+                @Override
+                public void handle(MouseEvent e) {
+                    RotateTransition rt = new RotateTransition(Duration.millis(3000), refreshButton);
+                    rt.setByAngle(360);
+                    rt.setCycleCount(1);
+                    rt.play();
+                    gamesList.getChildren().clear();
+                    categories.add(uncategorized);
+                    addToListFromRoot();
+                    generateButton(categories);
+                }
+            });
+        }catch (NullPointerException e){
+            System.out.println("SVG Image couldnt load: "+e.getMessage());
+        }
     }
 
-    static void openSteamUser(){
-        if(firstSteamUser){
+    static void openSteamUserDialog() {
+        if (firstSteamUser) {
             Alert userIsWantSteamDialog = new Alert(Alert.AlertType.CONFIRMATION);
-            userIsWantSteamDialog.setContentText("Test?");
             userIsWantSteamDialog.setTitle("Game Launcher");
             userIsWantSteamDialog.setHeaderText(null);
             userIsWantSteamDialog.setContentText("Steam User Not Found. Do you Want add?");
             userIsWantSteamDialog.showAndWait();
             Optional<ButtonType> result = userIsWantSteamDialog.showAndWait();
-            if(result.get() == ButtonType.OK){
+            if (result.get() == ButtonType.OK) {
                 TextInputDialog dialog = new TextInputDialog();
                 dialog.setTitle("Game Launcher");
-                dialog.setHeaderText("Enter your Steam URL name");
-                dialog.setContentText("Name:");
+                dialog.setHeaderText("Enter your Steam URL name or Your Steam ID");
+                dialog.setContentText("Name or ID:");
                 Optional<String> userInput = dialog.showAndWait();
 
                 result.ifPresent(name -> {
-                    try{
-                        if(userInput.get().length() > 0){
+                    try {
+                        if (userInput.get().length() > 0) {
                             Steam.initUser(userInput.get());
                             System.out.println(userInput.get());
-                        }else{
+                        } else {
                             System.out.println("not entered");
                         }
-                    }catch (NoSuchElementException e){
+                    } catch (NoSuchElementException e) {
                         System.out.println(e.getMessage());
                     }
                 });
             }
         }
-
     }
 
-    private void checkAndGetSteamUser(){
-        if(steamInfoFetched){
-            Label labelSteamName = new Label("Hoşgeldiniz " + ui.Main.userInfo.getRealName(),null);
-            gamesList.getChildren().add(0,labelSteamName);
+    private void checkAndGetSteamUser() {
+        if (steamInfoFetched) {
+            Label labelSteamName = new Label("Hoşgeldiniz " + ui.Main.userInfo.getPersonaName(), null);
+            container.getChildren().add(1, labelSteamName);
             labelSteamName.setStyle("-fx-font-weight: bold;");
         }
     }
 
-    private void setStyles(){
+    private void setStyles() {
         centerItems(expandButton);
     }
 
 
     private void collapseScreen() {
         System.out.println("Collapsing...");
-        categories.clear();
-        for (Category category : categories) {
-            category.removeGames();
-        }
-        uncategorized.removeGames();
+
         gameImageViewer.setImage(null);
         expandedScene.setVisible(false);
         expandButton.setVisible(true);
@@ -178,7 +199,7 @@ public class FXMLController implements Initializable {
 
 //        FadeTransition ft = new FadeTransition();
 //        ft.setDuration(Duration.seconds(1));
-//        ft.setNode(gamesList);
+//        ft.setNode(container);
 //        ft.setFromValue(1);
 //        ft.setToValue(0);
 //        ft.play();
@@ -190,9 +211,9 @@ public class FXMLController implements Initializable {
         expandedScene.setMinSize(0, 0);
         stage.setWidth(listWidth);
         stage.setHeight(height);
-        gamesList.setPadding(new Insets(labelGameList.getHeight() + 20, 15, 0, 10));
-        gamesList.setStyle("-fx-background-color: linear-gradient(to right, rgba(200,200,200,1) 0%, rgba(200,200,200,0.80) 30%,rgba(255,255,255,0.20) 80%, rgba(255,255,255,0.0) 100%)");
-        gamesList.setMaxWidth(listWidth);
+        container.setPadding(new Insets(labelGameList.getHeight() + 20, 15, 0, 10));
+        container.setStyle("-fx-background-color: linear-gradient(to right, rgba(200,200,200,1) 0%, rgba(200,200,200,0.80) 30%,rgba(255,255,255,0.20) 80%, rgba(255,255,255,0.0) 100%)");
+        container.setMaxWidth(listWidth);
         gameImageViewer.addEventHandler(MouseEvent.MOUSE_ENTERED, new EventHandler<>() {
             @Override
             public void handle(MouseEvent e) {
@@ -205,13 +226,12 @@ public class FXMLController implements Initializable {
         trans.setFromX(-150);
         trans.setToX(0);
         trans.play();
-        trans.setOnFinished(new EventHandler<>() {
+        /*trans.setOnFinished(new EventHandler<>() {
             @Override
             public void handle(ActionEvent event) {
-                System.out.println("Stage Coordinates : \n X: " + stage.getX() + " \n Y: " + stage.getY());
-                System.out.println("Stage Sizes : \n X: " + stage.getWidth() + " \n Y: " + stage.getHeight());
+
             }
-        });
+        });*/
     }
 
     private void generateButton(ArrayList<Category> categories) {
@@ -262,7 +282,7 @@ public class FXMLController implements Initializable {
                                     System.out.println("Program starting");
                                     Process proc = pb.start();
 //                                    System.out.println(pb.command());
-                                } else{
+                                } else {
                                     game.getGameExe().delete();
                                     Alert alert = new Alert(Alert.AlertType.INFORMATION);
                                     alert.setTitle("Game Launcher");
@@ -281,6 +301,11 @@ public class FXMLController implements Initializable {
                 tp.setContent(vbox);
             }
         }
+        categories.clear();
+        for (Category category : categories) {
+            category.removeGames();
+        }
+        uncategorized.removeGames();
     }
 
     private static void addToListFromRoot() {

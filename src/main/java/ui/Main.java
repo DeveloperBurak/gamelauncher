@@ -5,7 +5,6 @@ import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
@@ -15,6 +14,7 @@ import main.WindowsActivities;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
+import java.io.IOException;
 
 
 public class Main extends Application {
@@ -128,9 +128,14 @@ public class Main extends Application {
                         boolean isSteamUserExists = Steam.isExistsUserProperties();
                         if (!isSteamUserExists) {
                             FXMLController.firstSteamUser = true;
-                            FXMLController.openSteamUser();
+                            FXMLController.openSteamUserDialog();
                         }else{
                             System.out.println("exists");
+                            try{
+                                Steam.readUserInfoFromFile();
+                            }catch (IOException e){
+                                System.out.println(e.getMessage());
+                            }
                         }
                         if (Steam.getUser() != null) {
                             userInfo = Steam.getUser();

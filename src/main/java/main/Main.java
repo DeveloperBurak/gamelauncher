@@ -6,7 +6,7 @@ public class Main {
     public static void main(String[] args) {
         if(!FileController.checkExistsFolders()){
             System.out.println("Folders are writing...");
-            FileController.writeFiles();
+            FileController.writePredefinedFolders();
         }
 
         setScreen(args);

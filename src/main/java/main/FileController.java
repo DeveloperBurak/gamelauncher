@@ -1,10 +1,9 @@
 package main;
 
 import java.io.File;
-import java.io.IOException;
+import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 public class FileController {
 
@@ -37,17 +36,27 @@ public class FileController {
         }
         return true;
     }
-    static void writeFiles(){
+    static boolean writeFile(File file,String context){
+        try{
+            FileWriter fw=new FileWriter(file);
+            fw.write(context);
+            fw.close();
+        }catch(Exception e){System.out.println(e); return false;}
+        System.out.println("Success...");
+        return true;
+    }
+
+    static void writePredefinedFolders(){
         for(File file:files){
-            writeFile(file);
+            writeFolder(file);
         }
     }
-    private static void writeFile(File file){
-        if(!file.exists()){
-            if(file.mkdir()){
-                System.out.println(file.getName() + " is created");
+    static void writeFolder(File folder){
+        if(!folder.exists()){
+            if(folder.mkdir()){
+                System.out.println(folder.getName() + " is created");
             }else{
-                System.out.println(file.getName() + " couldn't created.");
+                System.out.println(folder.getName() + " couldn't created.");
             }
         }
     }

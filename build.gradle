@@ -26,6 +26,8 @@ shadowJar {
     baseName = 'Game Launcher'
     classifier = null
     version = 'Alpha 0.5'
+    compileJava.options.encoding = 'UTF-8'
+
     manifest {
         attributes 'Description': 'Game Launcher'
         attributes 'Main-Class': 'main.Main'
