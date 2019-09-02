@@ -4,7 +4,7 @@ import helper.FileHelper;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Properties;
+import java.util.List;
 
 public class Category {
     private String category_name;
@@ -48,21 +48,32 @@ public class Category {
         private String gameText;
         private File gameExe;
         private File gameImage;
+        private boolean isSteamGame;
 
         private String getTargetExePath() {
             String extension = FileHelper.getFileExtension(this.gameExe);
             if (extension.equals("lnk")) {
-                System.out.println("lnk found, real path: "+FileHelper.getRealExePath(this.gameExe));
+                System.out.println("lnk found, real path: " + FileHelper.getRealExePath(this.gameExe));
                 return FileHelper.getRealExePath(this.gameExe);
-            } else if(extension.equals("url")){
+            } else if (extension.equals("url")) {
                 System.out.println("Url Found");
-                helper.Windows.readInternetShortcutProperties(this.gameExe);
+                List props = helper.Windows.readInternetShortcutProperties(this.gameExe);
+                for(Object prop:props){
+                    System.out.println(prop);
+                    if(prop.toString().contains("URL=steam")){
+                        isSteamGame = true;
+                    }
+                }
 //                System.out.println("Url target: "+prop.getProperty("target"));
 //                System.out.println("url");
                 return extension;
-            }else{
+            } else {
                 return extension;
             }
+        }
+
+        public boolean getIsSteamGame(){
+            return isSteamGame;
         }
 
         public File getGameExe() {
@@ -79,16 +90,16 @@ public class Category {
 
         public boolean checkGameExist() {
             String targetPath = this.getTargetExePath();
-            if(targetPath != null){
-                if(targetPath.equals("url")){
+            if (targetPath != null) {
+                if (targetPath.equals("url")) {
                     return true;
-                }else{
+                } else {
                     File target = new File(targetPath);
-                    System.out.println("target : "+targetPath);
-                    System.out.println("file is searching: "+target.getAbsolutePath());
+                    System.out.println("target : " + targetPath);
+                    System.out.println("file is searching: " + target.getAbsolutePath());
                     return ((target.exists() && !target.isDirectory()));
                 }
-            }else{
+            } else {
                 return false;
             }
         }

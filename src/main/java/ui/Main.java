@@ -22,6 +22,7 @@ public class Main extends Application {
     private final Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
     public static WindowsActivities activity = new WindowsActivities();
     static Steam.SteamUser userInfo;
+    static boolean steamGameDetected;
 
     public static void main(String[] args) {
         launch(args);
@@ -40,11 +41,11 @@ public class Main extends Application {
     }
 
     final double returnSceneHeight() {
-        return screenSize.getHeight() / 35;
+        return screenSize.getHeight() / 55;
     }
 
     final double returnSceneWidth() {
-        return screenSize.getWidth() / 45;
+        return screenSize.getWidth() / 100;
     }
 
 
@@ -91,9 +92,9 @@ public class Main extends Application {
                             try {
                                 if (!exe.equals(prevExe)) { // check the opened program every 800ms. anchor: $1
                                     prevExe = exe;
-                                    boolean status = WindowsActivities.isLegalProgram(prevExe);
-//                                    WindowsActivities.showForbiddenApps();
-                                    stage.setAlwaysOnTop(status);
+                                    System.out.println("Steam Game Detected: "+steamGameDetected);
+//                                    if steam game detected, always on top should be false
+                                    stage.setAlwaysOnTop(WindowsActivities.isLegalProgram(prevExe) || !steamGameDetected);
                                 }
                             } catch (NullPointerException e) {
                                 System.out.println(e.getMessage());
@@ -124,13 +125,11 @@ public class Main extends Application {
                 Runnable updater = new Runnable() {
                     @Override
                     public void run() {
-//                        main.Main.steam.initUser("devadam01");
                         boolean isSteamUserExists = Steam.isExistsUserProperties();
                         if (!isSteamUserExists) {
                             FXMLController.firstSteamUser = true;
                             FXMLController.openSteamUserDialog();
                         }else{
-                            System.out.println("exists");
                             try{
                                 Steam.readUserInfoFromFile();
                             }catch (IOException e){
@@ -141,7 +140,6 @@ public class Main extends Application {
                             userInfo = Steam.getUser();
                             FXMLController.steamInfoFetched = true;
                         }
-//                        FXMLController.steamInfoFetched = true;
                     }
                 };
                 Platform.runLater(updater);

@@ -1,15 +1,15 @@
 package ui;
 
 import helper.FileHelper;
-import javafx.animation.FadeTransition;
-import javafx.animation.RotateTransition;
-import javafx.animation.TranslateTransition;
+import javafx.animation.*;
 import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -18,7 +18,6 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import main.Category;
@@ -59,7 +58,7 @@ public class FXMLController implements Initializable {
     private Stage stage = ui.Main.getStage();
     private final double width = main.returnScreenWidth();
     private final double height = main.returnScreenHeight();
-    private final double listWidth = width / 10;
+    private double minListWidth; // default width.
     private static final File folder = FileController.getFolder();
     private static final File folderShortcut = FileController.getFolderShortcut();
     private static ImageView gameImageViewer = new ImageView();
@@ -69,6 +68,13 @@ public class FXMLController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        if (width < 1400) {
+            minListWidth = width / 7; // default width.
+        } else if (width > 1401 && width < 2048) {
+            minListWidth = width / 9;
+        } else {
+            minListWidth = width / 11;
+        }
         try {
             scene.getStylesheets().add(getClass().getClassLoader().getResource("css/style.css").toExternalForm());
         } catch (NullPointerException e) {
@@ -107,7 +113,7 @@ public class FXMLController implements Initializable {
         steamThread.setDaemon(true);
         steamThread.start();
 
-        expandButton.addEventHandler(MouseEvent.MOUSE_ENTERED, new EventHandler<>() {
+        expandButton.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<>() {
             @Override
             public void handle(MouseEvent e) {
                 showExpandedScene();
@@ -120,12 +126,41 @@ public class FXMLController implements Initializable {
                 collapseScreen();
             }
         });
+        gameImageViewer.addEventHandler(MouseEvent.MOUSE_ENTERED, new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent mouseEvent) {
+                collapseScreen();
+            }
+        });
 
         Button refreshButton = new Button();
-        try{
+        try {
             refreshButton.setGraphic(new ImageView(new Image(this.getClass().getResourceAsStream("/images/icons/sync.jpg"), 30, 30, false, false)));
             refreshButton.setStyle("-fx-background-color: transparent;");
             container.getChildren().add(0, refreshButton);
+            RotateTransition rt = new RotateTransition(Duration.millis(2000), refreshButton);
+
+            refreshButton.addEventHandler(MouseEvent.MOUSE_ENTERED, new EventHandler<>() {
+                @Override
+                public void handle(MouseEvent e) {
+                    rt.setFromAngle(0);
+                    rt.setToAngle(180);
+                    rt.setInterpolator(Interpolator.LINEAR);
+                    rt.setCycleCount(Timeline.INDEFINITE);
+                    rt.play();
+                }
+            });
+
+            refreshButton.addEventHandler(MouseEvent.MOUSE_EXITED, new EventHandler<>() {
+                @Override
+                public void handle(MouseEvent e) {
+                    rt.setToAngle(rt.getByAngle());
+                    System.out.println(rt.getFromAngle());
+//                    rt.setToAngle();
+                    rt.stop();
+                }
+            });
+
             refreshButton.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<>() {
                 @Override
                 public void handle(MouseEvent e) {
@@ -139,8 +174,8 @@ public class FXMLController implements Initializable {
                     generateButton(categories);
                 }
             });
-        }catch (NullPointerException e){
-            System.out.println("SVG Image couldnt load: "+e.getMessage());
+        } catch (NullPointerException e) {
+            System.out.println("SVG Image couldnt load: " + e.getMessage());
         }
     }
 
@@ -187,41 +222,61 @@ public class FXMLController implements Initializable {
         centerItems(expandButton);
     }
 
+    public static ArrayList<Node> getAllNodes(Parent root) {
+        ArrayList<Node> nodes = new ArrayList<Node>();
+        addAllDescendents(root, nodes);
+        return nodes;
+    }
+
+    private static void addAllDescendents(Parent parent, ArrayList<Node> nodes) {
+        for (Node node : parent.getChildrenUnmodifiable()) {
+            nodes.add(node);
+            if (node instanceof Parent)
+                addAllDescendents((Parent) node, nodes);
+        }
+    }
 
     private void collapseScreen() {
         System.out.println("Collapsing...");
-
         gameImageViewer.setImage(null);
         expandedScene.setVisible(false);
         expandButton.setVisible(true);
         stage.setWidth(expandButton.getWidth());
         stage.setHeight(expandButton.getHeight());
-
-//        FadeTransition ft = new FadeTransition();
-//        ft.setDuration(Duration.seconds(1));
-//        ft.setNode(container);
-//        ft.setFromValue(1);
-//        ft.setToValue(0);
-//        ft.play();
     }
 
     private void showExpandedScene() {
+        System.out.println("Expanding...");
         expandButton.setVisible(false);
         expandedScene.setVisible(true);
         expandedScene.setMinSize(0, 0);
-        stage.setWidth(listWidth);
+        stage.setWidth(minListWidth);
         stage.setHeight(height);
+//        System.out.println(getAllNodes(gamesList));
+        ArrayList<Node> nodes = getAllNodes(gamesList);
+        System.out.println(nodes);
+        System.out.println(container.getWidth());
+        double highest = 0;
+        for (int i = 0; i < nodes.size(); i++) {
+            if (nodes.get(i) instanceof VBox) {
+                System.out.println("Vbox width:" + ((VBox) nodes.get(i)).getWidth());
+//                ((VBox) nodes.get(i)).setPrefWidth(2122);
+                for (int j = 0; j < ((VBox) nodes.get(i)).getChildren().size(); j++) {
+                    if (((VBox) nodes.get(i)).getChildren().get(j) instanceof Button) {
+                        System.out.println("Button found." + ((Button) ((VBox) nodes.get(i)).getChildren().get(j)).getWidth());
+                        Button btn = ((Button) ((VBox) nodes.get(i)).getChildren().get(j));
+                        double width = btn.getWidth();
+                        if(width>highest){
+                            highest = width;
+                        }
+                    }
+                }
+            }
+        }
+        System.out.println(highest);
         container.setPadding(new Insets(labelGameList.getHeight() + 20, 15, 0, 10));
         container.setStyle("-fx-background-color: linear-gradient(to right, rgba(200,200,200,1) 0%, rgba(200,200,200,0.80) 30%,rgba(255,255,255,0.20) 80%, rgba(255,255,255,0.0) 100%)");
-        container.setMaxWidth(listWidth);
-        gameImageViewer.addEventHandler(MouseEvent.MOUSE_ENTERED, new EventHandler<>() {
-            @Override
-            public void handle(MouseEvent e) {
-                collapseScreen();
-            }
-        });
-
-
+        container.setMaxWidth(minListWidth+highest);
         TranslateTransition trans = new TranslateTransition(Duration.seconds(1), expandedScene);
         trans.setFromX(-150);
         trans.setToX(0);
@@ -251,13 +306,14 @@ public class FXMLController implements Initializable {
                 Button gameButton = new Button();
                 gameButton.setText(game.getGameText());
                 gameButton.setStyle("-fx-background-color: rgba(255, 255, 255, 0);");
+                gameButton.setAlignment(Pos.BASELINE_LEFT);
                 gameButton.addEventHandler(MouseEvent.MOUSE_ENTERED, new EventHandler<>() {
                     @Override
                     public void handle(MouseEvent e) {
                         stage.setWidth(width + 18);
                         gameImageViewer.setImage(null);
-                        javafx.scene.image.Image picture = new Image(game.getGameImage().toURI().toString(), expandedScene.getWidth(), expandedScene.getHeight(), false, false);
-                        gameImageViewer.setImage(picture);
+                        gameImageViewer.setImage(new Image(game.getGameImage().toURI().toString(), expandedScene.getWidth(), expandedScene.getHeight(), false, false));
+                        System.gc(); // fresh the ram, useful for new Image
                         FadeTransition ft = new FadeTransition(Duration.millis(1000), gameImageViewer);
                         ft.setFromValue(0.1);
                         ft.setToValue(1);
@@ -279,6 +335,7 @@ public class FXMLController implements Initializable {
                             try {
                                 if (game.checkGameExist()) {
                                     ProcessBuilder pb = new ProcessBuilder("cmd", "/c", game.getGameExe().getAbsolutePath());
+                                    Main.steamGameDetected = game.getIsSteamGame();
                                     System.out.println("Program starting");
                                     Process proc = pb.start();
 //                                    System.out.println(pb.command());

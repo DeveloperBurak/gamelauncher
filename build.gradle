@@ -25,7 +25,7 @@ sourceCompatibility = 11
 shadowJar {
     baseName = 'Game Launcher'
     classifier = null
-    version = 'Alpha 0.5'
+    version = 'Beta 0.6'
     compileJava.options.encoding = 'UTF-8'
 
     manifest {
