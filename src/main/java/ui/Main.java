@@ -2,6 +2,7 @@ package ui;
 
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
@@ -12,7 +13,7 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import main.Steam;
-import main.WindowsActivities;
+import main.OsActivities;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -21,57 +22,43 @@ import java.io.IOException;
 
 public class Main extends Application {
     private static Stage stage;
-    private final Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
-    public static WindowsActivities activity = new WindowsActivities();
+    protected final UIScreen screen = new UIScreen();
+    final double SCENE_WIDTH = screen.getScreenWidth() / 100;
+    final double SCENE_HEIGHT = screen.getScreenHeight() / 55;
+    public static OsActivities activity = new OsActivities();
     static Steam.SteamUser userInfo;
     static boolean steamGameDetected;
-
     public static void main(String[] args) {
         launch(args);
     }
-
     static Stage getStage() {
         return stage;
     }
-
-    double returnScreenWidth() {
-        return screenSize.getWidth();
+    UIScreen getScreen(){
+        return screen;
     }
-
-    double returnScreenHeight() {
-        return screenSize.getHeight();
+    protected double getSceneWidth(){
+        return  SCENE_WIDTH;
     }
-
-    final double returnSceneHeight() {
-        return screenSize.getHeight() / 55;
+    protected double getSceneHeight(){
+        return SCENE_HEIGHT;
     }
-
-    final double returnSceneWidth() {
-        return screenSize.getWidth() / 100;
-    }
-
 
     @Override
     public void start(Stage primaryStage) throws Exception {
         stage = primaryStage;
-        final double sceneWidth = this.returnSceneWidth();
-        final double sceneHeight = this.returnSceneHeight();
-//        System.out.println("width:" + sceneWidth + "\n" + "height"+sceneHeight);
-
         Parent root = FXMLLoader.load(getClass().getResource("/fxml/scene.fxml"));
-        Scene scene = new Scene(root, sceneWidth, sceneHeight);
+        Scene scene = new Scene(root, SCENE_WIDTH, SCENE_HEIGHT);
         scene.setFill(Color.TRANSPARENT);
         stage.setTitle("Game Launcher");
         stage.initStyle(StageStyle.TRANSPARENT);
-//        Rectangle2D primScreenBounds = Screen.getPrimary().getVisualBounds();
-
         stage.setX(0);
         stage.setY(0);
         stage.getIcons().add(new Image(getClass().getResourceAsStream("/images/icon.jpg")));
         stage.setIconified(false);
         stage.setAlwaysOnTop(true);
         stage.setScene(scene);
-        String op = WindowsActivities.getOperatingSystem();
+        String op = OsActivities.getOperatingSystem();
 
         if (op.equals("Windows 10") || op.equals("Windows 7")) {
 
@@ -89,18 +76,17 @@ public class Main extends Application {
                 @Override
                 public void run() {
                     Runnable updater = new Runnable() {
-                        String prevExe = WindowsActivities.getOpenedProgram();
+                        String prevExe = OsActivities.getOpenedProgram();
 
                         @Override
                         public void run() {
-                            String exe = WindowsActivities.getOpenedProgram();
+                            String exe = OsActivities.getOpenedProgram();
                             try {
                                 if (!exe.equals(prevExe)) { // check the opened program every 800ms. anchor: $1
                                     prevExe = exe;
                                     System.out.println("Steam Game Detected: "+steamGameDetected);
-                                    System.out.println("Exe: "+exe);
 //                                    if steam game detected, always on top should be false
-                                    stage.setAlwaysOnTop(WindowsActivities.isLegalProgram(prevExe) || !steamGameDetected);
+                                    stage.setAlwaysOnTop(OsActivities.isLegalProgram(prevExe) || !steamGameDetected);
                                 }
                             } catch (NullPointerException e) {
                                 System.out.println(e.getMessage());
@@ -163,7 +149,27 @@ public class Main extends Application {
         // don't let thread prevent JVM shutdown
         steamThread.setDaemon(true);
         steamThread.start();
-        System.out.println("Activated ui Main init");
         stage.show();
     }
+
+    class UIScreen {
+        private final Rectangle2D screenSize = getMonitorSizes();
+
+        protected double getScreenWidth() {
+            return screenSize.getWidth();
+        }
+
+        protected double getScreenHeight() {
+            return screenSize.getHeight();
+        }
+
+        private ObservableList<Screen> getAvailableMonitors(){
+            return Screen.getScreens();
+        }
+
+        protected Rectangle2D getMonitorSizes(){
+            return getAvailableMonitors().get(0).getBounds();
+        }
+    }
+
 }

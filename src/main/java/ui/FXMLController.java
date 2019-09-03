@@ -23,7 +23,7 @@ import javafx.util.Duration;
 import main.Category;
 import main.FileController;
 import main.Steam;
-import main.WindowsActivities;
+import main.OsActivities;
 
 import java.io.File;
 import java.io.IOException;
@@ -56,8 +56,9 @@ public class FXMLController implements Initializable {
     private static Category uncategorized = new Category("Uncategorized");
     private static Main main = new Main();
     private Stage stage = ui.Main.getStage();
-    private final double width = main.returnScreenWidth();
-    private final double height = main.returnScreenHeight();
+//    private static UIScreen screen = main.getScreen();
+    private final double SCREEN_WIDTH = main.getScreen().getScreenWidth();
+    private final double SCREEN_HEIGHT = main.getScreen().getScreenHeight();
     private double minListWidth; // default width.
     private static final File folder = FileController.getFolder();
     private static final File folderShortcut = FileController.getFolderShortcut();
@@ -68,24 +69,21 @@ public class FXMLController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        if (width < 1400) {
-            minListWidth = width / 7; // default width.
-        } else if (width > 1401 && width < 2048) {
-            minListWidth = width / 9;
+        if (SCREEN_WIDTH < 1400) {
+            minListWidth = SCREEN_WIDTH / 7; // default width.
+        } else if (SCREEN_WIDTH > 1401 && SCREEN_WIDTH < 2048) {
+            minListWidth = SCREEN_WIDTH / 9;
         } else {
-            minListWidth = width / 11;
+            minListWidth = SCREEN_WIDTH / 11;
         }
-//        System.out.println("width: "+minListWidth);
-
         try {
             scene.getStylesheets().add(getClass().getClassLoader().getResource("css/style.css").toExternalForm());
         } catch (NullPointerException e) {
             System.out.println(e.getMessage());
         }
-        expandedScene.setAlignment(Pos.TOP_LEFT);
 
-//        expandButton.setPrefWidth(main.returnSceneWidth() - 5);
-//        expandButton.setPrefHeight(main.returnSceneHeight() - 5);
+        expandButton.setPrefWidth(main.getSceneWidth() - 5);
+        expandButton.setPrefHeight(main.getSceneHeight() - 5);
         setStyles();
         expandedScene.setVisible(false);
         container.getChildren().add(gamesList);
@@ -123,12 +121,12 @@ public class FXMLController implements Initializable {
             }
         });
 
-        expandedScene.addEventHandler(MouseEvent.MOUSE_EXITED, new EventHandler<MouseEvent>() {
+        /*expandedScene.addEventHandler(MouseEvent.MOUSE_EXITED, new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent mouseEvent) {
                 collapseScreen();
             }
-        });
+        });*/
         gameImageViewer.addEventHandler(MouseEvent.MOUSE_ENTERED, new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent mouseEvent) {
@@ -158,7 +156,7 @@ public class FXMLController implements Initializable {
                 @Override
                 public void handle(MouseEvent e) {
                     rt.setToAngle(rt.getByAngle());
-//                    System.out.println(rt.getFromAngle());
+                    System.out.println(rt.getFromAngle());
 //                    rt.setToAngle();
                     rt.stop();
                 }
@@ -180,8 +178,6 @@ public class FXMLController implements Initializable {
         } catch (NullPointerException e) {
             System.out.println("SVG Image couldnt load: " + e.getMessage());
         }
-        System.out.println("Activated FXML init");
-        System.out.println("X:" + stage.getX() + " Y: " +stage.getY()+" Width: "+stage.getWidth() + " Height: " + stage.getHeight());
     }
 
     static void openSteamUserDialog() {
@@ -242,45 +238,51 @@ public class FXMLController implements Initializable {
     }
 
     private void collapseScreen() {
-        System.out.println("Button width: " +expandButton.getWidth());
+        System.out.println("Collapsing...");
         gameImageViewer.setImage(null);
         expandedScene.setVisible(false);
         expandButton.setVisible(true);
         stage.setWidth(expandButton.getWidth());
         stage.setHeight(expandButton.getHeight());
-//        System.out.println("Button width: " +expandButton.getWidth() + "2");
-        System.out.println("Collapsing... " + " X:" + stage.getX() + " Y: " +stage.getY()+" Width: "+stage.getWidth() + " Height: " + stage.getHeight());
     }
 
     private void showExpandedScene() {
+        System.out.println("Expanding...");
         expandButton.setVisible(false);
         expandedScene.setVisible(true);
-//        expandedScene.setMinSize(0, 0);
+        expandedScene.setMinSize(0, 0);
         stage.setWidth(minListWidth);
-        stage.setHeight(height);
+        stage.setHeight(SCREEN_HEIGHT);
+        System.out.println("Screen height: " + SCREEN_HEIGHT);
+//        System.out.println(getAllNodes(gamesList));
         ArrayList<Node> nodes = getAllNodes(gamesList);
+        System.out.println(nodes);
+        System.out.println(container.getWidth());
         double highest = 0;
         for (int i = 0; i < nodes.size(); i++) {
             if (nodes.get(i) instanceof VBox) {
+                System.out.println("Vbox width:" + ((VBox) nodes.get(i)).getWidth());
+//                ((VBox) nodes.get(i)).setPrefWidth(2122);
                 for (int j = 0; j < ((VBox) nodes.get(i)).getChildren().size(); j++) {
                     if (((VBox) nodes.get(i)).getChildren().get(j) instanceof Button) {
+                        System.out.println("Button found." + ((Button) ((VBox) nodes.get(i)).getChildren().get(j)).getWidth());
                         Button btn = ((Button) ((VBox) nodes.get(i)).getChildren().get(j));
                         double width = btn.getWidth();
-                        if (width > highest) {
+                        if(width>highest){
                             highest = width;
                         }
                     }
                 }
             }
         }
+        System.out.println(highest);
         container.setPadding(new Insets(labelGameList.getHeight() + 20, 15, 0, 10));
         container.setStyle("-fx-background-color: linear-gradient(to right, rgba(200,200,200,1) 0%, rgba(200,200,200,0.80) 30%,rgba(255,255,255,0.20) 80%, rgba(255,255,255,0.0) 100%)");
-        container.setMaxWidth(minListWidth + highest);
+        container.setMaxWidth(minListWidth+highest);
         TranslateTransition trans = new TranslateTransition(Duration.seconds(1), expandedScene);
         trans.setFromX(-150);
         trans.setToX(0);
         trans.play();
-        System.out.println("Expanding... : "+ " X: " + stage.getX() + " Y: " +stage.getY()+" Width: "+stage.getWidth() + " Height: " + stage.getHeight());
         /*trans.setOnFinished(new EventHandler<>() {
             @Override
             public void handle(ActionEvent event) {
@@ -310,7 +312,7 @@ public class FXMLController implements Initializable {
                 gameButton.addEventHandler(MouseEvent.MOUSE_ENTERED, new EventHandler<>() {
                     @Override
                     public void handle(MouseEvent e) {
-                        stage.setWidth(width + 18);
+                        stage.setWidth(SCREEN_WIDTH + 18);
                         gameImageViewer.setImage(null);
                         gameImageViewer.setImage(new Image(game.getGameImage().toURI().toString(), expandedScene.getWidth(), expandedScene.getHeight(), false, false));
                         System.gc(); // fresh the ram, useful for new Image
@@ -318,6 +320,7 @@ public class FXMLController implements Initializable {
                         ft.setFromValue(0.1);
                         ft.setToValue(1);
                         ft.play();
+                        expandedScene.setAlignment(Pos.TOP_LEFT);
                         gameButton.setCursor(javafx.scene.Cursor.HAND);
                         expandedScene.getChildren().removeAll(gameImageViewer);
                         expandedScene.getChildren().add(gameImageViewer);
@@ -329,7 +332,7 @@ public class FXMLController implements Initializable {
                     @Override
                     public void handle(MouseEvent e) {
                         stage.setAlwaysOnTop(false);
-                        String op = WindowsActivities.getOperatingSystem();
+                        String op = OsActivities.getOperatingSystem();
                         if (op.equals("Windows 10") || op.equals("Windows 7")) {
                             try {
                                 if (game.checkGameExist()) {
