@@ -5,6 +5,7 @@ import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+
 public class FileController {
 
     private static final File folder = new File(System.getProperty("user.home")+"/Documents/Game Launcher");

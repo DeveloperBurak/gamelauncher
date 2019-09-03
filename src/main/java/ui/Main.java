@@ -3,10 +3,12 @@ package ui;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import main.Steam;
@@ -54,12 +56,15 @@ public class Main extends Application {
         stage = primaryStage;
         final double sceneWidth = this.returnSceneWidth();
         final double sceneHeight = this.returnSceneHeight();
+//        System.out.println("width:" + sceneWidth + "\n" + "height"+sceneHeight);
 
         Parent root = FXMLLoader.load(getClass().getResource("/fxml/scene.fxml"));
         Scene scene = new Scene(root, sceneWidth, sceneHeight);
         scene.setFill(Color.TRANSPARENT);
         stage.setTitle("Game Launcher");
         stage.initStyle(StageStyle.TRANSPARENT);
+//        Rectangle2D primScreenBounds = Screen.getPrimary().getVisualBounds();
+
         stage.setX(0);
         stage.setY(0);
         stage.getIcons().add(new Image(getClass().getResourceAsStream("/images/icon.jpg")));
@@ -93,6 +98,7 @@ public class Main extends Application {
                                 if (!exe.equals(prevExe)) { // check the opened program every 800ms. anchor: $1
                                     prevExe = exe;
                                     System.out.println("Steam Game Detected: "+steamGameDetected);
+                                    System.out.println("Exe: "+exe);
 //                                    if steam game detected, always on top should be false
                                     stage.setAlwaysOnTop(WindowsActivities.isLegalProgram(prevExe) || !steamGameDetected);
                                 }
@@ -157,6 +163,7 @@ public class Main extends Application {
         // don't let thread prevent JVM shutdown
         steamThread.setDaemon(true);
         steamThread.start();
+        System.out.println("Activated ui Main init");
         stage.show();
     }
 }

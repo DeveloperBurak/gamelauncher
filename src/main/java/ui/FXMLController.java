@@ -75,14 +75,17 @@ public class FXMLController implements Initializable {
         } else {
             minListWidth = width / 11;
         }
+//        System.out.println("width: "+minListWidth);
+
         try {
             scene.getStylesheets().add(getClass().getClassLoader().getResource("css/style.css").toExternalForm());
         } catch (NullPointerException e) {
             System.out.println(e.getMessage());
         }
+        expandedScene.setAlignment(Pos.TOP_LEFT);
 
-        expandButton.setPrefWidth(main.returnSceneWidth() - 5);
-        expandButton.setPrefHeight(main.returnSceneHeight() - 5);
+//        expandButton.setPrefWidth(main.returnSceneWidth() - 5);
+//        expandButton.setPrefHeight(main.returnSceneHeight() - 5);
         setStyles();
         expandedScene.setVisible(false);
         container.getChildren().add(gamesList);
@@ -155,7 +158,7 @@ public class FXMLController implements Initializable {
                 @Override
                 public void handle(MouseEvent e) {
                     rt.setToAngle(rt.getByAngle());
-                    System.out.println(rt.getFromAngle());
+//                    System.out.println(rt.getFromAngle());
 //                    rt.setToAngle();
                     rt.stop();
                 }
@@ -177,6 +180,8 @@ public class FXMLController implements Initializable {
         } catch (NullPointerException e) {
             System.out.println("SVG Image couldnt load: " + e.getMessage());
         }
+        System.out.println("Activated FXML init");
+        System.out.println("X:" + stage.getX() + " Y: " +stage.getY()+" Width: "+stage.getWidth() + " Height: " + stage.getHeight());
     }
 
     static void openSteamUserDialog() {
@@ -237,50 +242,45 @@ public class FXMLController implements Initializable {
     }
 
     private void collapseScreen() {
-        System.out.println("Collapsing...");
+        System.out.println("Button width: " +expandButton.getWidth());
         gameImageViewer.setImage(null);
         expandedScene.setVisible(false);
         expandButton.setVisible(true);
         stage.setWidth(expandButton.getWidth());
         stage.setHeight(expandButton.getHeight());
+//        System.out.println("Button width: " +expandButton.getWidth() + "2");
+        System.out.println("Collapsing... " + " X:" + stage.getX() + " Y: " +stage.getY()+" Width: "+stage.getWidth() + " Height: " + stage.getHeight());
     }
 
     private void showExpandedScene() {
-        System.out.println("Expanding...");
         expandButton.setVisible(false);
         expandedScene.setVisible(true);
-        expandedScene.setMinSize(0, 0);
+//        expandedScene.setMinSize(0, 0);
         stage.setWidth(minListWidth);
         stage.setHeight(height);
-//        System.out.println(getAllNodes(gamesList));
         ArrayList<Node> nodes = getAllNodes(gamesList);
-        System.out.println(nodes);
-        System.out.println(container.getWidth());
         double highest = 0;
         for (int i = 0; i < nodes.size(); i++) {
             if (nodes.get(i) instanceof VBox) {
-                System.out.println("Vbox width:" + ((VBox) nodes.get(i)).getWidth());
-//                ((VBox) nodes.get(i)).setPrefWidth(2122);
                 for (int j = 0; j < ((VBox) nodes.get(i)).getChildren().size(); j++) {
                     if (((VBox) nodes.get(i)).getChildren().get(j) instanceof Button) {
-                        System.out.println("Button found." + ((Button) ((VBox) nodes.get(i)).getChildren().get(j)).getWidth());
                         Button btn = ((Button) ((VBox) nodes.get(i)).getChildren().get(j));
                         double width = btn.getWidth();
-                        if(width>highest){
+                        if (width > highest) {
                             highest = width;
                         }
                     }
                 }
             }
         }
-        System.out.println(highest);
         container.setPadding(new Insets(labelGameList.getHeight() + 20, 15, 0, 10));
         container.setStyle("-fx-background-color: linear-gradient(to right, rgba(200,200,200,1) 0%, rgba(200,200,200,0.80) 30%,rgba(255,255,255,0.20) 80%, rgba(255,255,255,0.0) 100%)");
-        container.setMaxWidth(minListWidth+highest);
+        container.setMaxWidth(minListWidth + highest);
         TranslateTransition trans = new TranslateTransition(Duration.seconds(1), expandedScene);
         trans.setFromX(-150);
         trans.setToX(0);
         trans.play();
+        System.out.println("Expanding... : "+ " X: " + stage.getX() + " Y: " +stage.getY()+" Width: "+stage.getWidth() + " Height: " + stage.getHeight());
         /*trans.setOnFinished(new EventHandler<>() {
             @Override
             public void handle(ActionEvent event) {
@@ -318,7 +318,6 @@ public class FXMLController implements Initializable {
                         ft.setFromValue(0.1);
                         ft.setToValue(1);
                         ft.play();
-                        expandedScene.setAlignment(Pos.TOP_LEFT);
                         gameButton.setCursor(javafx.scene.Cursor.HAND);
                         expandedScene.getChildren().removeAll(gameImageViewer);
                         expandedScene.getChildren().add(gameImageViewer);
