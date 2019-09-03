@@ -10,7 +10,7 @@ import com.sun.jna.ptr.IntByReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class WindowsActivities {
+public class OsActivities {
     private static boolean isLegal;
     private static final int MAX_TITLE_LENGTH = 1024;
     private static final String[] predefinedForbiddenApps = {"chrome.exe", "opera.exe", "Spotify.exe", "steam.exe"};

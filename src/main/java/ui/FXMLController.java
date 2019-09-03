@@ -23,7 +23,7 @@ import javafx.util.Duration;
 import main.Category;
 import main.FileController;
 import main.Steam;
-import main.WindowsActivities;
+import main.OsActivities;
 
 import java.io.File;
 import java.io.IOException;
@@ -56,8 +56,9 @@ public class FXMLController implements Initializable {
     private static Category uncategorized = new Category("Uncategorized");
     private static Main main = new Main();
     private Stage stage = ui.Main.getStage();
-    private final double width = main.returnScreenWidth();
-    private final double height = main.returnScreenHeight();
+//    private static UIScreen screen = main.getScreen();
+    private final double SCREEN_WIDTH = main.getScreen().getScreenWidth();
+    private final double SCREEN_HEIGHT = main.getScreen().getScreenHeight();
     private double minListWidth; // default width.
     private static final File folder = FileController.getFolder();
     private static final File folderShortcut = FileController.getFolderShortcut();
@@ -68,12 +69,12 @@ public class FXMLController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        if (width < 1400) {
-            minListWidth = width / 7; // default width.
-        } else if (width > 1401 && width < 2048) {
-            minListWidth = width / 9;
+        if (SCREEN_WIDTH < 1400) {
+            minListWidth = SCREEN_WIDTH / 7; // default width.
+        } else if (SCREEN_WIDTH > 1401 && SCREEN_WIDTH < 2048) {
+            minListWidth = SCREEN_WIDTH / 9;
         } else {
-            minListWidth = width / 11;
+            minListWidth = SCREEN_WIDTH / 11;
         }
         try {
             scene.getStylesheets().add(getClass().getClassLoader().getResource("css/style.css").toExternalForm());
@@ -81,8 +82,8 @@ public class FXMLController implements Initializable {
             System.out.println(e.getMessage());
         }
 
-        expandButton.setPrefWidth(main.returnSceneWidth() - 5);
-        expandButton.setPrefHeight(main.returnSceneHeight() - 5);
+        expandButton.setPrefWidth(main.getSceneWidth() - 5);
+        expandButton.setPrefHeight(main.getSceneHeight() - 5);
         setStyles();
         expandedScene.setVisible(false);
         container.getChildren().add(gamesList);
@@ -120,12 +121,12 @@ public class FXMLController implements Initializable {
             }
         });
 
-        expandedScene.addEventHandler(MouseEvent.MOUSE_EXITED, new EventHandler<MouseEvent>() {
+        /*expandedScene.addEventHandler(MouseEvent.MOUSE_EXITED, new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent mouseEvent) {
                 collapseScreen();
             }
-        });
+        });*/
         gameImageViewer.addEventHandler(MouseEvent.MOUSE_ENTERED, new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent mouseEvent) {
@@ -251,7 +252,8 @@ public class FXMLController implements Initializable {
         expandedScene.setVisible(true);
         expandedScene.setMinSize(0, 0);
         stage.setWidth(minListWidth);
-        stage.setHeight(height);
+        stage.setHeight(SCREEN_HEIGHT);
+        System.out.println("Screen height: " + SCREEN_HEIGHT);
 //        System.out.println(getAllNodes(gamesList));
         ArrayList<Node> nodes = getAllNodes(gamesList);
         System.out.println(nodes);
@@ -310,7 +312,7 @@ public class FXMLController implements Initializable {
                 gameButton.addEventHandler(MouseEvent.MOUSE_ENTERED, new EventHandler<>() {
                     @Override
                     public void handle(MouseEvent e) {
-                        stage.setWidth(width + 18);
+                        stage.setWidth(SCREEN_WIDTH + 18);
                         gameImageViewer.setImage(null);
                         gameImageViewer.setImage(new Image(game.getGameImage().toURI().toString(), expandedScene.getWidth(), expandedScene.getHeight(), false, false));
                         System.gc(); // fresh the ram, useful for new Image
@@ -330,7 +332,7 @@ public class FXMLController implements Initializable {
                     @Override
                     public void handle(MouseEvent e) {
                         stage.setAlwaysOnTop(false);
-                        String op = WindowsActivities.getOperatingSystem();
+                        String op = OsActivities.getOperatingSystem();
                         if (op.equals("Windows 10") || op.equals("Windows 7")) {
                             try {
                                 if (game.checkGameExist()) {
