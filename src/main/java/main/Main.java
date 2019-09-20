@@ -1,5 +1,7 @@
 package main;
 
+import helper.Monitors;
+
 public class Main {
     public static Steam steam = new Steam();
 
@@ -8,7 +10,6 @@ public class Main {
             System.out.println("Folders are writing...");
             FileController.writePredefinedFolders();
         }
-
         setScreen(args);
     }
 

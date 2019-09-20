@@ -71,7 +71,7 @@ public class Steam {
         try {
             String fetchedUser = new Gson().fromJson(reader, JsonObject.class).toString();
             File userInfoFile = STEAM_USER_FILE;
-            if(FileController.writeFile(userInfoFile, fetchedUser)){
+            if(FileController.writeFile(userInfoFile, fetchedUser)){ // write steam user infos.
                 String fileReader = new String(Files.readAllBytes(Paths.get(userInfoFile.getAbsolutePath())));
                 Response response = new Gson().fromJson(fileReader, Response.class);
                 return response.getGeneralResponse().getPlayers().get(0);

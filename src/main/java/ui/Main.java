@@ -1,5 +1,6 @@
 package ui;
 
+import helper.Monitor;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
@@ -12,41 +13,82 @@ import javafx.scene.paint.Color;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import main.FileController;
 import main.Steam;
 import main.OsActivities;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
+import java.io.File;
 import java.io.IOException;
 
 
 public class Main extends Application {
     private static Stage stage;
-    protected final UIScreen screen = new UIScreen();
-    final double SCENE_WIDTH = screen.getScreenWidth() / 100;
-    final double SCENE_HEIGHT = screen.getScreenHeight() / 55;
+    private final helper.Monitor screen = new Monitor();
+    private final double SCENE_WIDTH = screen.getScreenWidth() / 100;
+    private final double SCENE_HEIGHT = screen.getScreenHeight() / 55;
+    private static final File monitorSettingFile = new File(FileController.getUserDirectory().getAbsolutePath() + File.separator + "monitor.json");
     public static OsActivities activity = new OsActivities();
     static Steam.SteamUser userInfo;
+
     static boolean steamGameDetected;
+
     public static void main(String[] args) {
         launch(args);
     }
+
     static Stage getStage() {
         return stage;
     }
-    UIScreen getScreen(){
+
+    Monitor getScreen() {
         return screen;
     }
-    protected double getSceneWidth(){
-        return  SCENE_WIDTH;
+
+    double getSceneWidth() {
+        return SCENE_WIDTH;
     }
-    protected double getSceneHeight(){
+
+    double getSceneHeight() {
         return SCENE_HEIGHT;
     }
 
     @Override
     public void start(Stage primaryStage) throws Exception {
         stage = primaryStage;
+        Thread monitorSelectThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Runnable updater = new Runnable() {
+                    @Override
+                    public void run() {
+                        boolean isMonitorSettingExists = monitorSettingFile.exists();
+                        if (!isMonitorSettingExists) {
+//                            FXMLController.firstSteamUser = true;
+                            FXMLController.openMonitorSelectorDialog();
+
+                        } else {
+                            try {
+                                System.out.println("monitor settings getting...");
+                                Steam.readUserInfoFromFile();
+                            } catch (IOException e) {
+                                System.out.println(e.getMessage());
+                            }
+                        }
+                        if (Steam.getUser() != null) {
+                            userInfo = Steam.getUser();
+                            FXMLController.steamInfoFetched = true;
+                        }
+                    }
+                };
+                Platform.runLater(updater);
+            }
+        });
+        // don't let thread prevent JVM shutdown
+        monitorSelectThread.setDaemon(true);
+        monitorSelectThread.start();
+
         Parent root = FXMLLoader.load(getClass().getResource("/fxml/scene.fxml"));
         Scene scene = new Scene(root, SCENE_WIDTH, SCENE_HEIGHT);
         scene.setFill(Color.TRANSPARENT);
@@ -58,6 +100,8 @@ public class Main extends Application {
         stage.setIconified(false);
         stage.setAlwaysOnTop(true);
         stage.setScene(scene);
+        System.out.println("starting... coords: " + stage.getX());
+
         String op = OsActivities.getOperatingSystem();
 
         if (op.equals("Windows 10") || op.equals("Windows 7")) {
@@ -84,7 +128,7 @@ public class Main extends Application {
                             try {
                                 if (!exe.equals(prevExe)) { // check the opened program every 800ms. anchor: $1
                                     prevExe = exe;
-                                    System.out.println("Steam Game Detected: "+steamGameDetected);
+                                    System.out.println("Steam Game Detected: " + steamGameDetected);
 //                                    if steam game detected, always on top should be false
                                     stage.setAlwaysOnTop(OsActivities.isLegalProgram(prevExe) || !steamGameDetected);
                                 }
@@ -121,10 +165,10 @@ public class Main extends Application {
                         if (!isSteamUserExists) {
                             FXMLController.firstSteamUser = true;
                             FXMLController.openSteamUserDialog();
-                        }else{
-                            try{
+                        } else {
+                            try {
                                 Steam.readUserInfoFromFile();
-                            }catch (IOException e){
+                            } catch (IOException e) {
                                 System.out.println(e.getMessage());
                             }
                         }
@@ -149,27 +193,12 @@ public class Main extends Application {
         // don't let thread prevent JVM shutdown
         steamThread.setDaemon(true);
         steamThread.start();
+
+
         stage.show();
     }
 
-    class UIScreen {
-        private final Rectangle2D screenSize = getMonitorSizes();
-
-        protected double getScreenWidth() {
-            return screenSize.getWidth();
-        }
-
-        protected double getScreenHeight() {
-            return screenSize.getHeight();
-        }
-
-        private ObservableList<Screen> getAvailableMonitors(){
-            return Screen.getScreens();
-        }
-
-        protected Rectangle2D getMonitorSizes(){
-            return getAvailableMonitors().get(0).getBounds();
-        }
+    static File getMonitorSettingsFile() {
+        return monitorSettingFile;
     }
-
 }

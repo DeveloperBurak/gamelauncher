@@ -15,7 +15,7 @@ public class FileController {
 
     private static ArrayList<File> files = new ArrayList<>(Arrays.asList(folder,folderShortcut,folderImage,folderUserDatas));
 
-    static File getUserDirectory(){
+    public static File getUserDirectory(){
         return folderUserDatas;
     }
     public static File getFolder() {
@@ -52,7 +52,7 @@ public class FileController {
             writeFolder(file);
         }
     }
-    static void writeFolder(File folder){
+    private static void writeFolder(File folder){
         if(!folder.exists()){
             if(folder.mkdir()){
                 System.out.println(folder.getName() + " is created");

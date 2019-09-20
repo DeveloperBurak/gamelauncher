@@ -67,7 +67,11 @@ public class Category {
 //                System.out.println("Url target: "+prop.getProperty("target"));
 //                System.out.println("url");
                 return extension;
+            } else if(extension.equals("sh")){
+//                System.out.println("sh");
+                return this.gameExe.getAbsolutePath();
             } else {
+
                 return extension;
             }
         }

@@ -1,0 +1,47 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+
+        {
+            "type": "java",
+            "name": "Debug (Launch) - Current File",
+            "request": "launch",
+            "mainClass": "main.Main"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-Windows<gamelauncher>",
+            "request": "launch",
+            "mainClass": "helper.Windows",
+            "projectName": "gamelauncher"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-Main<gamelauncher>",
+            "request": "launch",
+            "mainClass": "main.Main",
+            "projectName": "gamelauncher"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-Main<gamelauncher>(1)",
+            "request": "launch",
+            "mainClass": "mslinks.Main",
+            "projectName": "gamelauncher"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-FirstStartFXMLController<gamelauncher>",
+            "request": "launch",
+            "mainClass": "ui.FirstStartFXMLController",
+            "projectName": "gamelauncher"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-Main<gamelauncher>(2)",
+            "request": "launch",
+            "mainClass": "ui.Main",
+            "projectName": "gamelauncher"
+        }
+    ]
+}
