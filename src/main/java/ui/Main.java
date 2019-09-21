@@ -57,37 +57,11 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         stage = primaryStage;
-        Thread monitorSelectThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Runnable updater = new Runnable() {
-                    @Override
-                    public void run() {
-                        boolean isMonitorSettingExists = monitorSettingFile.exists();
-                        if (!isMonitorSettingExists) {
-//                            FXMLController.firstSteamUser = true;
-                            FXMLController.openMonitorSelectorDialog();
-
-                        } else {
-                            try {
-                                System.out.println("monitor settings getting...");
-                                Steam.readUserInfoFromFile();
-                            } catch (IOException e) {
-                                System.out.println(e.getMessage());
-                            }
-                        }
-                        if (Steam.getUser() != null) {
-                            userInfo = Steam.getUser();
-                            FXMLController.steamInfoFetched = true;
-                        }
-                    }
-                };
-                Platform.runLater(updater);
-            }
-        });
-        // don't let thread prevent JVM shutdown
-        monitorSelectThread.setDaemon(true);
-        monitorSelectThread.start();
+        if (!monitorSettingFile.exists()) {
+            FXMLController.openMonitorSelectorDialog();
+        } else {
+            System.out.println("monitor settings getting...");
+        }
 
         Parent root = FXMLLoader.load(getClass().getResource("/fxml/scene.fxml"));
         Scene scene = new Scene(root, SCENE_WIDTH, SCENE_HEIGHT);
@@ -114,45 +88,52 @@ public class Main extends Application {
             } catch (AWTException e) {
                 System.out.println("TrayIcon could not be added.");
             }
+        }
 
-            // longrunning operation runs on different thread
-            Thread thread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    Runnable updater = new Runnable() {
-                        String prevExe = OsActivities.getOpenedProgram();
+        // longrunning operation runs on different thread
+        Thread activityThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                final boolean[] willContinue = {true};
+                Runnable updater = new Runnable() {
+                    String prevExe = OsActivities.getOpenedProgram();
 
-                        @Override
-                        public void run() {
-                            String exe = OsActivities.getOpenedProgram();
-                            try {
+                    @Override
+                    public void run() {
+                        String exe = OsActivities.getOpenedProgram();
+                        try {
+                            if (exe == null) {
+                                willContinue[0] = false;
+                                Thread.currentThread().interrupt();
+                                System.out.println("Activity wont tracking now.");
+                            } else {
                                 if (!exe.equals(prevExe)) { // check the opened program every 800ms. anchor: $1
                                     prevExe = exe;
                                     System.out.println("Steam Game Detected: " + steamGameDetected);
 //                                    if steam game detected, always on top should be false
                                     stage.setAlwaysOnTop(OsActivities.isLegalProgram(prevExe) || !steamGameDetected);
                                 }
-                            } catch (NullPointerException e) {
-                                System.out.println(e.getMessage());
                             }
-                        }
-                    };
 
-                    while (true) {
-                        try {
-                            Thread.sleep(800); // $1
-                        } catch (InterruptedException ex) {
-                            System.out.println(ex.getMessage());
+                        } catch (NullPointerException e) {
+                            System.out.println(e.getMessage());
                         }
-                        // UI update is run on the Application thread
-                        Platform.runLater(updater);
                     }
+                };
+                Platform.runLater(updater);
+                while (willContinue[0]) {
+                    try {
+                        Thread.sleep(800); // $1
+                    } catch (InterruptedException ex) {
+                        System.out.println(ex.getMessage());
+                    }
+                    // UI update is run on the Application thread
                 }
-            });
-            // don't let thread prevent JVM shutdown
-            thread.setDaemon(true);
-            thread.start();
-        }
+            }
+        });
+        // don't let thread prevent JVM shutdown
+        activityThread.setDaemon(true);
+        activityThread.start();
 
 
         Thread steamThread = new Thread(new Runnable() {

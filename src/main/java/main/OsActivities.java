@@ -36,15 +36,19 @@ public class OsActivities {
     }
 
     public static String getOpenedProgram() {
-        WinDef.HWND fg = User32.INSTANCE.GetForegroundWindow();
-        // don't print the name if it's still the same window as previously
-        String fgImageName = getImageName(fg);
-        if (fgImageName == null) {
-            return "Failed to get the image name!";
-        } else {
-            String[] exePath = fgImageName.split("\\\\");
-            return exePath[exePath.length - 1];
+        if (getOperatingSystem().equals("Windows 10") || getOperatingSystem().equals("Windows 7")) {
+            WinDef.HWND fg = User32.INSTANCE.GetForegroundWindow();
+            // don't print the name if it's still the same window as previously
+            String fgImageName = getImageName(fg);
+            if (fgImageName == null) {
+                return "Failed to get the image name!";
+            } else {
+                String[] exePath = fgImageName.split("\\\\");
+                return exePath[exePath.length - 1];
+            }
         }
+        System.out.println("Not valid OS");
+        return null;
     }
 
     public static void showForbiddenApps() {

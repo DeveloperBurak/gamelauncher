@@ -59,24 +59,38 @@ public class Steam {
         return null;
     }
 
-    public static void readUserInfoFromFile() throws IOException{
+    public static void readUserInfoFromFile() throws IOException {
         String fileReader = new String(Files.readAllBytes(Paths.get(STEAM_USER_FILE.getAbsolutePath())));
         Response response = new Gson().fromJson(fileReader, Response.class);
-        userInfo =  response.getGeneralResponse().getPlayers().get(0);
+        userInfo = response.getGeneralResponse().getPlayers().get(0);
     }
 
     private static SteamUser getSteamInfoFromAPI() throws IOException {
         URL url = new URL("http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=" + STEAM_API_KEY + "&steamids=" + steamID);
         InputStreamReader reader = new InputStreamReader(url.openStream());
         try {
-            String fetchedUser = new Gson().fromJson(reader, JsonObject.class).toString();
-            File userInfoFile = STEAM_USER_FILE;
-            if(FileController.writeFile(userInfoFile, fetchedUser)){ // write steam user infos.
-                String fileReader = new String(Files.readAllBytes(Paths.get(userInfoFile.getAbsolutePath())));
-                Response response = new Gson().fromJson(fileReader, Response.class);
-                return response.getGeneralResponse().getPlayers().get(0);
+//            Response response = new Gson().fromJson(reader, Response.class);
+            JsonObject response = new Gson().fromJson(reader, JsonObject.class);
+            Response customResponse = new Gson().fromJson(response, Response.class);
+            if (customResponse.getGeneralResponse().getPlayers().size() > 0) {
+                SteamUser player = customResponse.getGeneralResponse().getPlayers().get(0);
+                String fetchedUser = response.toString();
+                File userInfoFile = STEAM_USER_FILE;
+                if (FileController.writeFile(userInfoFile, fetchedUser)) { // write steam user infos.
+                    String fileReader = new String(Files.readAllBytes(Paths.get(userInfoFile.getAbsolutePath())));
+                    Response fileJSON = new Gson().fromJson(fileReader, Response.class);
+                    if (fileJSON.getGeneralResponse().getPlayers().size() > 0) {
+                        return fileJSON.getGeneralResponse().getPlayers().get(0);
+                    } else {
+                        return null;
+                    }
+                }
+            } else {
+                System.out.println("There is no user: " + steamID);
+                return null;
             }
-            return null;
+
+
         } catch (UnsupportedOperationException e) {
             System.out.println(e.getMessage());
         }
@@ -84,11 +98,11 @@ public class Steam {
     }
 
     private SteamGameNews getSteamGameNews(String id) throws IOException {
-        return getSteamGameNews(id,3);
+        return getSteamGameNews(id, 3);
     }
 
-    private SteamGameNews getSteamGameNews(String id,int count) throws IOException {
-        URL url = new URL("https://api.steampowered.com/ISteamNews/GetNewsForApp/v2/?appid="+id+"&count="+count);
+    private SteamGameNews getSteamGameNews(String id, int count) throws IOException {
+        URL url = new URL("https://api.steampowered.com/ISteamNews/GetNewsForApp/v2/?appid=" + id + "&count=" + count);
         InputStreamReader reader = new InputStreamReader(url.openStream());
         Response response = new Gson().fromJson(reader, Response.class);
         return response.getGameNewsResponse();

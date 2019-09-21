@@ -102,6 +102,7 @@ public class FXMLController implements Initializable {
                         checkAndGetSteamUser();
                     }
                 };
+                Platform.runLater(updater);
                 while (!steamInfoFetched) {
                     try {
                         Thread.sleep(800);
@@ -110,7 +111,6 @@ public class FXMLController implements Initializable {
                     }
                 }
                 // UI update is run on the Application thread
-                Platform.runLater(updater);
             }
         });
         // don't let thread prevent JVM shutdown
@@ -161,9 +161,9 @@ public class FXMLController implements Initializable {
     static void openMonitorSelectorDialog() {
         final List<Monitors.Monitor> monitors = Monitors.getMonitorsWithSize();
         System.out.println(monitors);
-        if(monitors.size() == 1){
+        if (monitors.size() == 1) {
             System.out.println(monitors.get(0).getHeight());
-        }else if(monitors.size() > 1){
+        } else if (monitors.size() > 1) {
             List<String> monitorList = new ArrayList<>();
             int count = 0;
             for (Monitors.Monitor monitor : monitors) {
@@ -180,48 +180,38 @@ public class FXMLController implements Initializable {
             if (result.isPresent()) {
                 selected = result.get();
                 int selected_monitor = Character.getNumericValue(selected.charAt(0));
-                selected_monitor = selected_monitor -1 ; // we set +1 for beautiful read to numbers. so we must minus -1 for get real array index.
+                selected_monitor = selected_monitor - 1; // we set +1 for beautiful read to numbers. so we must minus -1 for get real array index.
                 Gson gson = new Gson();
-                Monitors.Monitor monitor = new Monitors.Monitor(selected_monitor+1,monitors.get(selected_monitor).getWidth(),monitors.get(selected_monitor).getHeight());
+                Monitors.Monitor monitor = new Monitors.Monitor(selected_monitor + 1, monitors.get(selected_monitor).getWidth(), monitors.get(selected_monitor).getHeight());
                 try (FileWriter writer = new FileWriter(Main.getMonitorSettingsFile())) {
                     gson.toJson(monitor, writer);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
-        }else{
+        } else {
             System.out.println("Monitor couldnt find.");
         }
     }
 
     static void openSteamUserDialog() {
         if (firstSteamUser) {
+            System.out.println("Dialog pane is opening");
             Alert userIsWantSteamDialog = new Alert(Alert.AlertType.CONFIRMATION);
             userIsWantSteamDialog.setTitle("Game Launcher");
             userIsWantSteamDialog.setHeaderText(null);
             userIsWantSteamDialog.setContentText("Steam User Not Found. Do you Want add?");
-            userIsWantSteamDialog.showAndWait();
             Optional<ButtonType> result = userIsWantSteamDialog.showAndWait();
-            if (result.get() == ButtonType.OK) {
-                TextInputDialog dialog = new TextInputDialog();
-                dialog.setTitle("Game Launcher");
-                dialog.setHeaderText("Enter your Steam URL name or Your Steam ID");
-                dialog.setContentText("Name or ID:");
-                Optional<String> userInput = dialog.showAndWait();
-
-                result.ifPresent(name -> {
-                    try {
-                        if (userInput.get().length() > 0) {
-                            Steam.initUser(userInput.get());
-                            System.out.println(userInput.get());
-                        } else {
-                            System.out.println("not entered");
-                        }
-                    } catch (NoSuchElementException e) {
-                        System.out.println(e.getMessage());
-                    }
-                });
-            }
+            result.ifPresent(choice -> {
+                if (choice == ButtonType.OK) {
+                    TextInputDialog dialog = new TextInputDialog();
+                    dialog.setTitle("Game Launcher");
+                    dialog.setHeaderText("Enter your Steam URL name or Your Steam ID");
+                    dialog.setContentText("Name or ID:");
+                    Optional<String> userInput = dialog.showAndWait();
+                    userInput.ifPresent(Steam::initUser);
+                }
+            });
         }
     }
 
