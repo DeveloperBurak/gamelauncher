@@ -58,18 +58,17 @@ public class FXMLController implements Initializable {
 //    private Button refreshButton;
     private static ArrayList<Category> categories = new ArrayList<>();
     private static Category unCategorized = new Category("Uncategorized");
-    private static Main main = new Main();
+//    private static Main main = new Main();
     private Stage stage = ui.Main.getStage();
-    //    private static UIScreen screen = main.getScreen();
-    private final double SCREEN_WIDTH = main.getScreen().getScreenWidth();
-    private final double SCREEN_HEIGHT = main.getScreen().getScreenHeight();
+    private static final double SCREEN_WIDTH = Main.getScreenWidth();
+    private static final double SCREEN_HEIGHT = Main.getScreenHeight();
     private double minListWidth; // default width.
     private static final File folder = FileController.getFolder();
     private static final File folderShortcut = FileController.getFolderShortcut();
     private static ImageView gameImageViewer = new ImageView();
-    static boolean steamInfoFetched = false;
-    static boolean firstSteamUser = false;
     private VBox gamesList = new VBox();
+    private double firstSceneWidth = SCREEN_WIDTH / 55;
+    private double firstSceneHeight = SCREEN_HEIGHT / 100;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -85,37 +84,33 @@ public class FXMLController implements Initializable {
         } catch (NullPointerException e) {
             System.out.println(e.getMessage());
         }
-        expandButton.setPrefWidth(main.getSceneWidth() - 5);
-        expandButton.setPrefHeight(main.getSceneHeight() - 5);
+        expandButton.setPrefWidth(firstSceneWidth);
+        expandButton.setPrefHeight(firstSceneHeight);
         setStyles();
         expandedScene.setVisible(false);
         container.getChildren().add(gamesList);
         categories.add(unCategorized);
         addToListFromRoot();
         generateButton(categories);
-        Thread steamThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Runnable updater = new Runnable() {
-                    @Override
-                    public void run() {
-                        checkAndGetSteamUser();
-                    }
-                };
-                Platform.runLater(updater);
-                while (!steamInfoFetched) {
-                    try {
-                        Thread.sleep(800);
-                    } catch (InterruptedException ex) {
-                        System.out.println(ex.getMessage());
-                    }
+        Thread labelSetThread = new Thread(() -> {
+            Runnable updater = () -> {
+                if (Main.userInfo != null) {
+                    setSteamUserLabel();
                 }
-                // UI update is run on the Application thread
+            };
+            while (Main.userInfo == null) {
+                try {
+                    System.out.println("listening for steam name label...");
+                    Thread.sleep(800);
+                } catch (InterruptedException ex) {
+                    System.out.println(ex.getMessage());
+                }
             }
+            Platform.runLater(updater);// UI update is run on the Application thread
         });
-        // don't let thread prevent JVM shutdown
-        steamThread.setDaemon(true);
-        steamThread.start();
+
+        labelSetThread.setDaemon(true); // don't let thread prevent JVM shutdown
+        labelSetThread.start();
 
         expandButton.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> showExpandedScene());
 //        expandedScene.addEventHandler(MouseEvent.MOUSE_EXITED, mouseEvent -> collapseScreen());
@@ -138,8 +133,9 @@ public class FXMLController implements Initializable {
 
             refreshButton.addEventHandler(MouseEvent.MOUSE_EXITED, e -> {
                 rt.setToAngle(rt.getByAngle());
-                System.out.println(rt.getFromAngle());
-//                    rt.setToAngle();
+                System.out.println("from angle: " + rt.getFromAngle());
+                System.out.println("to angle: " + rt.getToAngle());
+                System.out.println("by angle: " + rt.getByAngle());
                 rt.stop();
             });
 
@@ -183,7 +179,7 @@ public class FXMLController implements Initializable {
                 selected_monitor = selected_monitor - 1; // we set +1 for beautiful read to numbers. so we must minus -1 for get real array index.
                 Gson gson = new Gson();
                 Monitors.Monitor monitor = new Monitors.Monitor(selected_monitor + 1, monitors.get(selected_monitor).getWidth(), monitors.get(selected_monitor).getHeight());
-                try (FileWriter writer = new FileWriter(Main.getMonitorSettingsFile())) {
+                try (FileWriter writer = new FileWriter(ui.Monitor.getMonitorSettingsFile())) {
                     gson.toJson(monitor, writer);
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -195,7 +191,7 @@ public class FXMLController implements Initializable {
     }
 
     static void openSteamUserDialog() {
-        if (firstSteamUser) {
+        if (Main.firstSteamUser) {
             System.out.println("Dialog pane is opening");
             Alert userIsWantSteamDialog = new Alert(Alert.AlertType.CONFIRMATION);
             userIsWantSteamDialog.setTitle("Game Launcher");
@@ -215,12 +211,16 @@ public class FXMLController implements Initializable {
         }
     }
 
-    private void checkAndGetSteamUser() {
-        if (steamInfoFetched) {
-            Label labelSteamName = new Label("Welcome " + ui.Main.userInfo.getPersonaName(), null);
+    private void setSteamUserLabel() {
+        try {
+            Label labelSteamName = new Label("Welcome " + Main.userInfo.getPersonaName(), null);
             container.getChildren().add(1, labelSteamName);
+            System.out.println("setting label");
             labelSteamName.setStyle("-fx-font-weight: bold;");
+        } catch (NullPointerException e) {
+            System.out.println("user info is null");
         }
+
     }
 
     private void setStyles() {

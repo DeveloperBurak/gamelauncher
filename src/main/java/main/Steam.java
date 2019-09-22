@@ -19,6 +19,7 @@ public class Steam {
     private static SteamUser userInfo;
 
     public static boolean isExistsUserProperties() {
+        System.out.println("exist");
         return STEAM_USER_FILE.exists();
     }
 
@@ -59,10 +60,10 @@ public class Steam {
         return null;
     }
 
-    public static void readUserInfoFromFile() throws IOException {
+    public static SteamUser readUserInfoFromFile() throws IOException {
         String fileReader = new String(Files.readAllBytes(Paths.get(STEAM_USER_FILE.getAbsolutePath())));
         Response response = new Gson().fromJson(fileReader, Response.class);
-        userInfo = response.getGeneralResponse().getPlayers().get(0);
+        return response.getGeneralResponse().getPlayers().get(0);
     }
 
     private static SteamUser getSteamInfoFromAPI() throws IOException {
@@ -108,13 +109,6 @@ public class Steam {
         return response.getGameNewsResponse();
     }
 
-    class SteamGameNews {
-        SteamGameNews appnews;
-
-        SteamGameNews getGameNews() {
-            return appnews;
-        }
-    }
 
     class Response {
         SteamPlayers response;
@@ -125,6 +119,14 @@ public class Steam {
         }
 
         SteamGameNews getGameNewsResponse() {
+            return appnews;
+        }
+    }
+
+    class SteamGameNews {
+        SteamGameNews appnews;
+
+        SteamGameNews getGameNews() {
             return appnews;
         }
     }
