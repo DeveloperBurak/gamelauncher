@@ -1,5 +1,7 @@
 package ui;
 
+import activities.OS;
+import activities.SteamGameHandler;
 import apps.Category;
 import apps.Game;
 import com.google.gson.Gson;
@@ -25,8 +27,7 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import main.FileController;
-import main.OsActivities;
-import main.Steam;
+import main.SteamAPI;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -46,8 +47,6 @@ public class FXMLController implements Initializable {
     private Button expandButton;
     @FXML
     private AnchorPane scene;
-    @FXML
-    private javafx.scene.control.Label labelGameList;
     @FXML
     private AnchorPane expandedContainer;
     @FXML
@@ -206,7 +205,7 @@ public class FXMLController implements Initializable {
                     dialog.setHeaderText("Enter your Steam URL name or Your Steam ID");
                     dialog.setContentText("Name or ID:");
                     Optional<String> userInput = dialog.showAndWait();
-                    userInput.ifPresent(Steam::initUser);
+                    userInput.ifPresent(SteamAPI::initUser);
                 }
             });
         }
@@ -216,7 +215,6 @@ public class FXMLController implements Initializable {
         try {
             Label labelSteamName = new Label("Welcome " + Main.userInfo.getPersonaName(), null);
             container.getChildren().add(1, labelSteamName);
-            System.out.println("setting label");
             labelSteamName.setStyle("-fx-font-weight: bold;");
         } catch (NullPointerException e) {
             System.out.println("user info is null");
@@ -228,7 +226,7 @@ public class FXMLController implements Initializable {
         centerItems(expandButton);
     }
 
-    public static ArrayList<Node> getAllNodes(Parent root) {
+    private static ArrayList<Node> getAllNodes(Parent root) {
         ArrayList<Node> nodes = new ArrayList<Node>();
         addAllDescendents(root, nodes);
         return nodes;
@@ -277,7 +275,7 @@ public class FXMLController implements Initializable {
                 }
             }
         }
-        container.setPadding(new Insets(labelGameList.getHeight() + 20, 15, 0, 10));
+//        container.setPadding(new Insets(labelGameList.getHeight() + 20, 15, 0, 10));
         container.setStyle("-fx-background-color: linear-gradient(to right, rgba(200,200,200,1) 0%, rgba(200,200,200,0.80) 30%,rgba(255,255,255,0.20) 80%, rgba(255,255,255,0.0) 100%)");
         container.prefWidthProperty().bind(stage.widthProperty().multiply(0.2));
         container.maxWidthProperty().bind(stage.widthProperty().multiply(0.2));
@@ -344,11 +342,15 @@ public class FXMLController implements Initializable {
                 gameButton.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<>() {
                     @Override
                     public void handle(MouseEvent e) {
-                        stage.setAlwaysOnTop(false);
-                        String op = OsActivities.getOperatingSystem();
+//                        stage.setAlwaysOnTop(false);
+                        String op = OS.getOperatingSystem();
                         if (game.checkGameExist()) {
                             if (game.run()) {
-                                Main.steamGameDetected = game.getIsSteamGame();
+//                                Main.steamGameDetected = game.getIsSteamGame();
+                                if(game.isSteamGame()){
+                                    System.out.println(game.getSteamID());
+                                    SteamGameHandler.addRunningSteamGame(game.getSteamID());
+                                }
                                 collapseScreen();
                             } else {
                                 Alert alert = new Alert(Alert.AlertType.INFORMATION);

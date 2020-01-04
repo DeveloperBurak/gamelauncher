@@ -12,7 +12,7 @@ import java.nio.file.Paths;
 import java.util.List;
 
 
-public class Steam {
+public class SteamAPI {
     private static final String STEAM_API_KEY = "F43B1DDF20E0781DBFC68B8B68E0255B";
     private static final File STEAM_USER_FILE = new File(FileController.getUserDirectory().getAbsolutePath() + File.separator + "steam.json");
     private static String steamID;
@@ -32,6 +32,8 @@ public class Steam {
 //            System.out.println(e.getMessage());
         }
     }
+
+
 
     public static SteamUser getUser() {
         return userInfo;

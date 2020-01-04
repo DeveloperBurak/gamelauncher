@@ -1,5 +1,8 @@
 package ui;
 
+import activities.ProgramHandler;
+import activities.OS;
+import activities.SteamGameHandler;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -9,12 +12,12 @@ import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import main.OsActivities;
-import main.Steam;
+import main.SteamAPI;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.io.IOException;
+import java.util.prefs.BackingStoreException;
 
 
 public class Main extends Application {
@@ -22,10 +25,10 @@ public class Main extends Application {
     private static ui.Monitor monitor;
     private static double SCREEN_WIDTH, SCREEN_HEIGHT; // these sizes of monitor
     private static double firstSceneWidth, firstSceneHeight; // these size of
-    public static OsActivities activity = new OsActivities();
-    static Steam.SteamUser userInfo;
+    public static ProgramHandler activity = new ProgramHandler();
+    static SteamAPI.SteamUser userInfo;
     static boolean firstSteamUser = false;
-    static boolean steamGameDetected;
+//    static boolean steamGameDetected;
 
     public static void main(String[] args) {
         launch(args);
@@ -43,11 +46,11 @@ public class Main extends Application {
         return SCREEN_HEIGHT;
     }
 
-    public static double getFirstSceneWidth() {
+    static double getFirstSceneWidth() {
         return firstSceneWidth;
     }
 
-    public static double getFirstSceneHeight() {
+    static double getFirstSceneHeight() {
         return firstSceneHeight;
     }
 
@@ -72,7 +75,7 @@ public class Main extends Application {
         stage.setScene(scene);
         stage.setWidth(getFirstSceneWidth());
         stage.setHeight(getFirstSceneHeight());
-        String op = OsActivities.getOperatingSystem();
+        String op = OS.getOperatingSystem();
         if (op.equals("Windows 10") || op.equals("Windows 7")) {
             final SystemTray tray = SystemTray.getSystemTray();
             final TrayIcon trayIcon = new TrayIcon(ImageIO.read(getClass().getResource("/images/icon.jpg"))
@@ -89,12 +92,14 @@ public class Main extends Application {
         Thread activityThread = new Thread(() -> {
             final boolean[] willContinue = {true};
             Runnable updater = new Runnable() {
-                String prevExe = OsActivities.getOpenedProgram();
+                String prevExe = ProgramHandler.getActiveProgram();
 
                 @Override
                 public void run() {
-                    String exe = OsActivities.getOpenedProgram();
+                    String exe = ProgramHandler.getActiveProgram();
+
                     try {
+//                        System.out.println("test");
                         if (exe == null) {
                             willContinue[0] = false;
                             Thread.currentThread().interrupt();
@@ -102,9 +107,14 @@ public class Main extends Application {
                         } else {
                             if (!exe.equals(prevExe)) { // check the opened program every 800ms. anchor: $1
                                 prevExe = exe;
-                                System.out.println("Steam Game Detected: " + steamGameDetected);
 //                                    if steam game detected, always on top should be false
-                                stage.setAlwaysOnTop(OsActivities.isLegalProgram(prevExe) || !steamGameDetected);
+                                // TODO make this adjustable by user preferences
+
+                            }
+                            try {
+                                stage.setAlwaysOnTop(ProgramHandler.isLegalProgram(prevExe) && !SteamGameHandler.isStillRunningSteamGame());
+                            } catch (BackingStoreException | IOException | InterruptedException e) {
+                                e.printStackTrace();
                             }
                         }
                     } catch (NullPointerException e) {
@@ -112,15 +122,20 @@ public class Main extends Application {
                     }
                 }
             };
-            Platform.runLater(updater);
+//            Platform.runLater(updater);
+
+            System.out.println(willContinue[0]);
             while (willContinue[0]) {
                 try {
-                    Thread.sleep(800); // $1
+                    Thread.sleep(10000); // $1
+                    Platform.runLater(updater);
+
                 } catch (InterruptedException ex) {
                     System.out.println(ex.getMessage());
                 }
                 // UI update is run on the Application thread
             }
+
         });
         // don't let thread prevent JVM shutdown
         activityThread.setDaemon(true);
@@ -129,14 +144,14 @@ public class Main extends Application {
 
         Thread steamThread = new Thread(() -> {
             Runnable updater = () -> {
-                boolean isSteamUserExists = Steam.isExistsUserProperties();
+                boolean isSteamUserExists = SteamAPI.isExistsUserProperties();
                 System.out.println("status: " + isSteamUserExists);
                 if (!isSteamUserExists) {
                     firstSteamUser = true;
                     FXMLController.openSteamUserDialog();
                 } else {
                     try {
-                        userInfo = Steam.readUserInfoFromFile();
+                        userInfo = SteamAPI.readUserInfoFromFile();
                         firstSteamUser = false;
                         System.out.println(userInfo.getPersonaName());
                     } catch (IOException e) {
@@ -145,6 +160,7 @@ public class Main extends Application {
                 }
             };
             Platform.runLater(updater);
+
             while (userInfo == null && !firstSteamUser) {
                 try {
                     System.out.println("user fetching...");

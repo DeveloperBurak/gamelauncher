@@ -1,7 +1,7 @@
 package apps;
 
+import activities.OS;
 import helper.FileHelper;
-import main.OsActivities;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,36 +12,42 @@ public class Game {
     private File gameExe;
     private File gameImage;
     private boolean isSteamGame;
+    private Integer steamAppID;
 
     private String getTargetExePath() {
         String extension = FileHelper.getFileExtension(this.gameExe);
-        if (extension.equals("lnk")) {
-            System.out.println("lnk found, real path: " + FileHelper.getRealExePath(this.gameExe));
-            return FileHelper.getRealExePath(this.gameExe);
-        } else if (extension.equals("url")) {
-            System.out.println("Url Found");
-            List props = helper.Windows.readInternetShortcutProperties(this.gameExe);
-            for (Object prop : props) {
-                System.out.println(prop);
-                if (prop.toString().contains("URL=steam")) {
-                    isSteamGame = true;
+        switch (extension) {
+            case "lnk":
+                return FileHelper.getRealExePath(this.gameExe);
+            case "url":
+                List props = helper.Windows.readInternetShortcutProperties(this.gameExe);
+                for (Object prop : props) {
+                    if (prop.toString().contains("URL=steam")) {
+                        isSteamGame = true;
+                        String[] urlParts = prop.toString().split("/");
+                        steamAppID = Integer.parseInt(urlParts[urlParts.length - 1]);
+                        System.out.println(gameText + " : " + steamAppID);
+                    }
                 }
-            }
-            return extension;
-        } else if (extension.equals("sh")) {
-            return this.gameExe.getAbsolutePath();
-        } else {
+                return extension;
+            case "sh":
+                return this.gameExe.getAbsolutePath();
+            default:
 
-            return extension;
+                return extension;
         }
     }
 
-    public boolean getIsSteamGame() {
+    public boolean isSteamGame() {
         return isSteamGame;
     }
 
-    public File getGameExe() {
+    private File getGameExe() {
         return gameExe;
+    }
+
+    public Integer getSteamID() {
+        return steamAppID;
     }
 
     public File getGameImage() {
@@ -76,7 +82,7 @@ public class Game {
     }
 
     public boolean run() {
-        String op = OsActivities.getOperatingSystem();
+        String op = OS.getOperatingSystem();
         if (op.equals("Windows 10") || op.equals("Windows 7")) {
             try {
                 ProcessBuilder pb = new ProcessBuilder("cmd", "/c", this.getGameExe().getAbsolutePath());
