@@ -1,9 +1,8 @@
 package helper;
 
 import mslinks.ShellLink;
-import java.io.File;
 
-import java.util.Optional;
+import java.io.File;
 
 public class FileHelper {
     public static String getFileNameWithExtension(java.io.File file) {
@@ -12,7 +11,8 @@ public class FileHelper {
         String[] path = exePath.split("\\\\");
         return path[path.length - 1];
     }
-    public static String getRealExePath(java.io.File file){
+
+    public static String getRealExePath(java.io.File file) {
         // Handle null case specially.
         String exePath = null;
         try {
@@ -28,7 +28,8 @@ public class FileHelper {
         if (exePath == null) return null;
         return exePath;
     }
-//    public static String
+
+    //    public static String
     public static String stripExtension(String str) {
         // Handle null case specially.
         if (str == null) return null;
@@ -39,14 +40,15 @@ public class FileHelper {
         // Otherwise return the string, up to the dot.
         return str.substring(0, pos);
     }
+
     public static String getFileExtension(java.io.File file) {
         String fileName = file.getAbsolutePath();
-        if(fileName.lastIndexOf(".") != -1 && fileName.lastIndexOf(".") != 0)
-            return fileName.substring(fileName.lastIndexOf(".")+1);
+        if (fileName.lastIndexOf(".") != -1 && fileName.lastIndexOf(".") != 0)
+            return fileName.substring(fileName.lastIndexOf(".") + 1);
         else return "";
     }
 
-    public static File strToFile(String path){
+    public static File strToFile(String path) {
         return new File(path);
     }
 

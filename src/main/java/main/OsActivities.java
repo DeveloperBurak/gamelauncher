@@ -31,7 +31,7 @@ public class OsActivities {
         System.out.println("rect = " + rect);
     }
 
-    void addForbbidenApp(String app) {
+    public void addForbbidenApp(String app) {
         if (app != null) forbiddenApps.add(app);
     }
 

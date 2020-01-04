@@ -45,7 +45,6 @@ public class Steam {
         URL url = new URL("http://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key=" + STEAM_API_KEY + "&vanityurl=" + username);
         InputStreamReader reader = new InputStreamReader(url.openStream());
         try {
-//            System.out.println(new Gson().fromJson(reader, JsonObject.class)); // for debug
             Response response = new Gson().fromJson(reader, Response.class);
             if (response.getGeneralResponse().getSuccess().equals("1")) {
                 return response.getGeneralResponse().getSteamID();
@@ -70,7 +69,6 @@ public class Steam {
         URL url = new URL("http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=" + STEAM_API_KEY + "&steamids=" + steamID);
         InputStreamReader reader = new InputStreamReader(url.openStream());
         try {
-//            Response response = new Gson().fromJson(reader, Response.class);
             JsonObject response = new Gson().fromJson(reader, JsonObject.class);
             Response customResponse = new Gson().fromJson(response, Response.class);
             if (customResponse.getGeneralResponse().getPlayers().size() > 0) {
@@ -152,18 +150,12 @@ public class Steam {
     public class SteamUser {
         private String personaname;
         private String realname;
-
         public String getRealName() {
             return this.realname;
         }
-
         public String getPersonaName() {
             return this.personaname;
         }
-
-//        public String getName() {
-//            return this.name;
-//        }
     }
 
 

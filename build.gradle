@@ -13,7 +13,7 @@ apply plugin: 'java'
 apply plugin: 'org.openjfx.javafxplugin'
 apply plugin: 'com.github.johnrengelman.shadow'
 javafx {
-    modules = [ 'javafx.controls','javafx.fxml','javafx.graphics','javafx.swing','javafx.base' ]
+    modules = ['javafx.controls', 'javafx.fxml', 'javafx.graphics', 'javafx.swing', 'javafx.base']
 }
 
 
@@ -42,5 +42,6 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
     implementation fileTree(dir: 'src/libs', include: ['*.jar'])
     implementation 'com.google.code.gson:gson:2.8.5'
+    implementation 'de.jensd:fontawesomefx-fontawesome:4.7.0-9.1.2'
     testImplementation 'com.google.code.findbugs:jsr305:3.0.2'
 }

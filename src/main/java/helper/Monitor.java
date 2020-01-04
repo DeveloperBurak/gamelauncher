@@ -13,7 +13,7 @@ public class Monitor {
         return getMonitorSizes().getHeight();
     }
 
-    public static ObservableList<Screen> getAvailableMonitors(){
+    public static ObservableList<Screen> getAvailableMonitors() {
         return Screen.getScreens();
     }
 

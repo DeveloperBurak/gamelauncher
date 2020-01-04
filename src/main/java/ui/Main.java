@@ -19,21 +19,9 @@ import java.io.IOException;
 
 public class Main extends Application {
     private static Stage stage;
-    //    private final helper.Monitor screen = new Monitor();
     private static ui.Monitor monitor;
-
-    static {
-        try {
-            monitor = new Monitor();
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.out.println("monitor setting file couldnt get properly.");
-            System.exit(1);
-        }
-    }
-
-    private static final double SCREEN_WIDTH = monitor.getWidth();
-    private static final double SCREEN_HEIGHT = monitor.getHeight();
+    private static double SCREEN_WIDTH, SCREEN_HEIGHT; // these sizes of monitor
+    private static double firstSceneWidth, firstSceneHeight; // these size of
     public static OsActivities activity = new OsActivities();
     static Steam.SteamUser userInfo;
     static boolean firstSteamUser = false;
@@ -55,13 +43,24 @@ public class Main extends Application {
         return SCREEN_HEIGHT;
     }
 
+    public static double getFirstSceneWidth() {
+        return firstSceneWidth;
+    }
+
+    public static double getFirstSceneHeight() {
+        return firstSceneHeight;
+    }
+
     @Override
     public void start(Stage primaryStage) throws Exception {
         stage = primaryStage;
-        double sceneWidth = SCREEN_WIDTH / 100;
-        double sceneHeight = SCREEN_HEIGHT / 55;
+        monitor = new Monitor();
+        SCREEN_HEIGHT = monitor.getHeight();
+        SCREEN_WIDTH = monitor.getWidth();
+        firstSceneWidth = SCREEN_WIDTH / 50;
+        firstSceneHeight = SCREEN_HEIGHT / 25;
         Parent root = FXMLLoader.load(getClass().getResource("/fxml/scene.fxml"));
-        Scene scene = new Scene(root, sceneWidth, sceneHeight);
+        Scene scene = new Scene(root, firstSceneWidth, firstSceneHeight);
         scene.setFill(Color.TRANSPARENT);
         stage.setTitle("Game Launcher");
         stage.initStyle(StageStyle.TRANSPARENT);
@@ -71,6 +70,8 @@ public class Main extends Application {
         stage.setIconified(false);
         stage.setAlwaysOnTop(true);
         stage.setScene(scene);
+        stage.setWidth(getFirstSceneWidth());
+        stage.setHeight(getFirstSceneHeight());
         String op = OsActivities.getOperatingSystem();
         if (op.equals("Windows 10") || op.equals("Windows 7")) {
             final SystemTray tray = SystemTray.getSystemTray();
@@ -84,7 +85,7 @@ public class Main extends Application {
         }
         stage.show();
 
-        // longrunning operation runs on different thread
+        // this tracks which program is active
         Thread activityThread = new Thread(() -> {
             final boolean[] willContinue = {true};
             Runnable updater = new Runnable() {
@@ -124,6 +125,7 @@ public class Main extends Application {
         // don't let thread prevent JVM shutdown
         activityThread.setDaemon(true);
         activityThread.start();
+
 
         Thread steamThread = new Thread(() -> {
             Runnable updater = () -> {

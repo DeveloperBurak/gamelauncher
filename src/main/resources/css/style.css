@@ -58,3 +58,10 @@
 -fx-effect: null;
 -fx-background-color: white;
 }
+
+.bars{
+    -glyph-name: "BARS";
+    -icons-color: blue;
+    -fx-fill: linear-gradient(-icons-color 0%,
+        derive(-icons-color, 100%) 30%, derive(blueviolet, 30%) 85%);
+}
