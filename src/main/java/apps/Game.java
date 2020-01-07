@@ -1,6 +1,6 @@
 package apps;
 
-import activities.OS;
+import system.OS;
 import helper.FileHelper;
 
 import java.io.File;
@@ -26,7 +26,6 @@ public class Game {
                         isSteamGame = true;
                         String[] urlParts = prop.toString().split("/");
                         steamAppID = Integer.parseInt(urlParts[urlParts.length - 1]);
-                        System.out.println(gameText + " : " + steamAppID);
                     }
                 }
                 return extension;
