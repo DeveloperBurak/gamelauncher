@@ -1,6 +1,9 @@
 package ui;
 
 import com.google.gson.Gson;
+import helper.Monitors;
+import javafx.collections.ObservableList;
+import javafx.stage.Screen;
 import main.FileController;
 
 import java.io.File;
@@ -11,6 +14,7 @@ import java.nio.file.Paths;
 class Monitor {
     private final double width;
     private final double height;
+    private final int position;
     private static final File MONITOR_SETTINGS_FILE = new File(FileController.getUserDirectory().getAbsolutePath() + File.separator + "monitor.json");
 
     Monitor() {
@@ -28,6 +32,7 @@ class Monitor {
         monitorJSON monitorJSON = new Gson().fromJson(fileReader, monitorJSON.class);
         this.width = monitorJSON.getWidth();
         this.height = monitorJSON.getHeight();
+        this.position = monitorJSON.getPosition();
     }
 
     double getWidth() {
@@ -41,6 +46,7 @@ class Monitor {
     private static class monitorJSON {
         double width;
         double height;
+        int monitorPosition;
 
         double getWidth() {
             return width;
@@ -49,6 +55,22 @@ class Monitor {
         double getHeight() {
             return height;
         }
+
+        int getPosition() {
+            return monitorPosition;
+        }
+    }
+
+    public double getMonitorCoordinate(String coord) {
+        double coordinate = 0;
+        ObservableList<Screen> screens = Monitors.getAvailableMonitors();
+        switch (coord) {
+            case "X":
+                return screens.get(position - 1).getBounds().getMinX();
+            case "Y":
+                return screens.get(position - 1).getBounds().getMinY();
+        }
+        return coordinate;
     }
 
     static File getMonitorSettingsFile() {

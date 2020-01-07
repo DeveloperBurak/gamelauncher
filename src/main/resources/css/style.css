@@ -65,3 +65,28 @@
     -fx-fill: linear-gradient(-icons-color 0%,
         derive(-icons-color, 100%) 30%, derive(blueviolet, 30%) 85%);
 }
+.refresh{
+    -glyph-name:"REFRESH";
+    -icons-color:black;
+}
+
+.game-button{
+-fx-text-fill:white;
+}
+
+.game-button:hover{
+-fx-text-fill: red;
+}
+
+.white-text{
+-fx-text-fill:white;
+}
+
+.transparent{
+-fx-background-color: rgba(255, 255, 255, 0);
+}
+
+.list-padding{
+-fx-padding:10px;
+
+}

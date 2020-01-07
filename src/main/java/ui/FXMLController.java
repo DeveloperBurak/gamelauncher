@@ -1,14 +1,15 @@
 package ui;
 
-import activities.OS;
-import activities.SteamGameHandler;
 import apps.Category;
 import apps.Game;
 import com.google.gson.Gson;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
 import helper.FileHelper;
 import helper.Monitors;
-import javafx.animation.*;
+import javafx.animation.FadeTransition;
+import javafx.animation.RotateTransition;
+import javafx.animation.Timeline;
+import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -28,6 +29,7 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 import main.FileController;
 import main.SteamAPI;
+import system.SteamGameHandler;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -38,21 +40,21 @@ import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
-/*
- * @todo fix the width problem on width.
- * */
-
 public class FXMLController implements Initializable {
     @FXML
     private Button expandButton;
     @FXML
     private AnchorPane scene;
     @FXML
-    private AnchorPane expandedContainer;
-    @FXML
     private StackPane expandedScene;
     @FXML
     private VBox container;
+    private static final String WHITE_TEXT_CLASS = "white-text";
+    private static final String TRANSPARENT_CLASS = "transparent";
+    private static final String LIST_PADDING_CLASS = "list-padding";
+    /**
+     * this will be clean after buttons generated.
+     */
     private static ArrayList<Category> categories = new ArrayList<>();
     private static Category unCategorized = new Category("Uncategorized");
     private Stage stage = ui.Main.getStage();
@@ -79,9 +81,10 @@ public class FXMLController implements Initializable {
         expandButton.prefHeightProperty().bind(stage.heightProperty().multiply(0.2));
         expandButton.setBackground(new Background(new BackgroundFill(Color.GRAY.darker(), CornerRadii.EMPTY, Insets.EMPTY)));
         expandButton.setAlignment(Pos.CENTER);
-        FontAwesomeIconView thumbsUpIcon = new FontAwesomeIconView();
-        thumbsUpIcon.setStyleClass("bars");
-        expandButton.setGraphic(thumbsUpIcon);
+        FontAwesomeIconView barsIcon = new FontAwesomeIconView();
+        barsIcon.setStyleClass("bars");
+        expandButton.setGraphic(barsIcon);
+        barsIcon = null; // memory clean
         setStyles();
         expandedScene.setVisible(false);
         container.getChildren().add(gamesList);
@@ -117,28 +120,24 @@ public class FXMLController implements Initializable {
 
     private void setRefreshButton() {
         Button refreshButton = new Button();
-        try {
-            refreshButton.setGraphic(new ImageView(new Image(this.getClass().getResourceAsStream("/images/icons/sync.jpg"), 30, 30, false, false)));
-            refreshButton.setStyle("-fx-background-color: transparent;");
-            container.getChildren().add(0, refreshButton);
-        } catch (NullPointerException e) {
-            System.out.println("SVG Image couldnt load: " + e.getMessage());
-        }
-        RotateTransition rt = new RotateTransition(Duration.millis(2000), refreshButton);
+        FontAwesomeIconView refreshIcon = new FontAwesomeIconView();
+        refreshIcon.setGlyphSize(24);
+        refreshIcon.setStyleClass("refresh");
+        refreshButton.setGraphic(refreshIcon);
+        refreshButton.getStyleClass().add(TRANSPARENT_CLASS);
+        container.getChildren().add(0, refreshButton);
+        RotateTransition rt = new RotateTransition(Duration.millis(2000), refreshIcon);
 
         refreshButton.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> {
             rt.setFromAngle(0);
             rt.setToAngle(180);
-            rt.setInterpolator(Interpolator.LINEAR);
+//            rt.setInterpolator(Interpolator.LINEAR);
             rt.setCycleCount(Timeline.INDEFINITE);
             rt.play();
         });
 
         refreshButton.addEventHandler(MouseEvent.MOUSE_EXITED, e -> {
             rt.setToAngle(rt.getByAngle());
-            System.out.println("from angle: " + rt.getFromAngle());
-            System.out.println("to angle: " + rt.getToAngle());
-            System.out.println("by angle: " + rt.getByAngle());
             rt.stop();
         });
 
@@ -216,6 +215,8 @@ public class FXMLController implements Initializable {
             Label labelSteamName = new Label("Welcome " + Main.userInfo.getPersonaName(), null);
             container.getChildren().add(1, labelSteamName);
             labelSteamName.setStyle("-fx-font-weight: bold;");
+            labelSteamName.getStyleClass().add(WHITE_TEXT_CLASS);
+            labelSteamName.getStyleClass().add(LIST_PADDING_CLASS);
         } catch (NullPointerException e) {
             System.out.println("user info is null");
         }
@@ -276,7 +277,7 @@ public class FXMLController implements Initializable {
             }
         }
 //        container.setPadding(new Insets(labelGameList.getHeight() + 20, 15, 0, 10));
-        container.setStyle("-fx-background-color: linear-gradient(to right, rgba(200,200,200,1) 0%, rgba(200,200,200,0.80) 30%,rgba(255,255,255,0.20) 80%, rgba(255,255,255,0.0) 100%)");
+        container.setStyle("-fx-background-color: linear-gradient(to right, rgba(33,33,33,1) 0%, rgba(33,33,33,0.70) 30%,rgba(66,66,66,0.20) 80%, rgba(66,66,66,0.0) 100%)");
         container.prefWidthProperty().bind(stage.widthProperty().multiply(0.2));
         container.maxWidthProperty().bind(stage.widthProperty().multiply(0.2));
 
@@ -305,7 +306,7 @@ public class FXMLController implements Initializable {
         for (Category category : categories) {
             TitledPane tp = new TitledPane(category.getCategoryName(), null);
             tp.setText(category.getCategoryName());
-            tp.setStyle("-fx-background-color: rgba(255,255,255,0);");
+            tp.getStyleClass().add(TRANSPARENT_CLASS);
             if (!unCategorized.getCategoryName().equals(tp.getText())) {
                 tp.setExpanded(false);
             } else {
@@ -316,8 +317,9 @@ public class FXMLController implements Initializable {
             ArrayList<Game> games = category.getGames();
             for (Game game : games) {
                 Button gameButton = new Button();
+                gameButton.getStyleClass().add("game-button");
                 gameButton.setText(game.getGameText());
-                gameButton.setStyle("-fx-background-color: rgba(255, 255, 255, 0);");
+                gameButton.getStyleClass().add(TRANSPARENT_CLASS);
                 gameButton.setAlignment(Pos.BASELINE_LEFT);
                 gameButton.addEventHandler(MouseEvent.MOUSE_ENTERED, new EventHandler<>() {
                     @Override
@@ -330,11 +332,11 @@ public class FXMLController implements Initializable {
                         ft.setFromValue(0.1);
                         ft.setToValue(1);
                         ft.play();
+                        container.getStyleClass().add(TRANSPARENT_CLASS);
                         expandedScene.setAlignment(Pos.TOP_LEFT);
                         gameButton.setCursor(javafx.scene.Cursor.HAND);
                         expandedScene.getChildren().removeAll(gameImageViewer);
                         expandedScene.getChildren().add(gameImageViewer);
-//                        container.setPrefWidth(minListWidth);
                         gamesList.toFront();
                         gameImageViewer.toBack();
                     }
@@ -342,13 +344,9 @@ public class FXMLController implements Initializable {
                 gameButton.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<>() {
                     @Override
                     public void handle(MouseEvent e) {
-//                        stage.setAlwaysOnTop(false);
-                        String op = OS.getOperatingSystem();
                         if (game.checkGameExist()) {
                             if (game.run()) {
-//                                Main.steamGameDetected = game.getIsSteamGame();
-                                if(game.isSteamGame()){
-                                    System.out.println(game.getSteamID());
+                                if (game.isSteamGame()) {
                                     SteamGameHandler.addRunningSteamGame(game.getSteamID());
                                 }
                                 collapseScreen();
@@ -374,9 +372,6 @@ public class FXMLController implements Initializable {
             }
         }
         categories.clear();
-        for (Category category : categories) {
-            category.removeGames();
-        }
         unCategorized.removeGames();
     }
 

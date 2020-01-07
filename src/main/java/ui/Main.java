@@ -1,8 +1,8 @@
 package ui;
 
-import activities.ProgramHandler;
-import activities.OS;
-import activities.SteamGameHandler;
+import system.ProgramHandler;
+import system.OS;
+import system.SteamGameHandler;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -28,7 +28,6 @@ public class Main extends Application {
     public static ProgramHandler activity = new ProgramHandler();
     static SteamAPI.SteamUser userInfo;
     static boolean firstSteamUser = false;
-//    static boolean steamGameDetected;
 
     public static void main(String[] args) {
         launch(args);
@@ -60,6 +59,7 @@ public class Main extends Application {
         monitor = new Monitor();
         SCREEN_HEIGHT = monitor.getHeight();
         SCREEN_WIDTH = monitor.getWidth();
+        System.out.println(SCREEN_WIDTH + " x " + SCREEN_HEIGHT);
         firstSceneWidth = SCREEN_WIDTH / 50;
         firstSceneHeight = SCREEN_HEIGHT / 25;
         Parent root = FXMLLoader.load(getClass().getResource("/fxml/scene.fxml"));
@@ -67,7 +67,7 @@ public class Main extends Application {
         scene.setFill(Color.TRANSPARENT);
         stage.setTitle("Game Launcher");
         stage.initStyle(StageStyle.TRANSPARENT);
-        stage.setX(0);
+        stage.setX(monitor.getMonitorCoordinate("X"));
         stage.setY(0);
         stage.getIcons().add(new Image(getClass().getResourceAsStream("/images/icon.jpg")));
         stage.setIconified(false);
@@ -75,8 +75,7 @@ public class Main extends Application {
         stage.setScene(scene);
         stage.setWidth(getFirstSceneWidth());
         stage.setHeight(getFirstSceneHeight());
-        String op = OS.getOperatingSystem();
-        if (op.equals("Windows 10") || op.equals("Windows 7")) {
+        if (OS.isWindows()) {
             final SystemTray tray = SystemTray.getSystemTray();
             final TrayIcon trayIcon = new TrayIcon(ImageIO.read(getClass().getResource("/images/icon.jpg"))
                     .getScaledInstance(16, 16, 2), "Game Launcher");
