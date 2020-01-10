@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
 public class Windows {
@@ -65,7 +66,7 @@ public class Windows {
         fw.close();
     }
 
-    public static List readInternetShortcutProperties(File file) {
+    public static List<String> readInternetShortcutProperties(File file) {
         try {
             return Files.readAllLines(file.toPath());
         } catch (IOException e) {

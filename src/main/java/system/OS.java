@@ -44,7 +44,11 @@ public class OS {
         return success ? new String(buffer, 0, bufferSize.getValue()) : null;
     }
 
-    public static boolean isWindows(){
+    public static boolean isWindows() {
         return getOperatingSystem().equals("Windows 10") || getOperatingSystem().equals("Windows 7");
+    }
+
+    public static boolean isLinux() {
+        return getOperatingSystem().equals("Linux");
     }
 }

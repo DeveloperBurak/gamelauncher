@@ -35,10 +35,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.ResourceBundle;
+import java.util.*;
+
+import static ui.Main.monitor;
 
 public class FXMLController implements Initializable {
     @FXML
@@ -75,7 +74,7 @@ public class FXMLController implements Initializable {
         } else {
             minListWidth = SCREEN_WIDTH / 11;
         }
-        scene.getStylesheets().add(getClass().getClassLoader().getResource("css/style.css").toExternalForm());
+        scene.getStylesheets().add(Objects.requireNonNull(getClass().getClassLoader().getResource("css/style.css")).toExternalForm());
         expandButton.minWidthProperty().bind(stage.widthProperty().multiply(0.4));
         expandButton.prefWidthProperty().bind(stage.widthProperty().multiply(0.2));
         expandButton.prefHeightProperty().bind(stage.heightProperty().multiply(0.2));
@@ -84,7 +83,6 @@ public class FXMLController implements Initializable {
         FontAwesomeIconView barsIcon = new FontAwesomeIconView();
         barsIcon.setStyleClass("bars");
         expandButton.setGraphic(barsIcon);
-        barsIcon = null; // memory clean
         setStyles();
         expandedScene.setVisible(false);
         container.getChildren().add(gamesList);
@@ -165,7 +163,7 @@ public class FXMLController implements Initializable {
                 monitorList.add((count + 1) + " : " + monitors.get(count).getWidth() + " x " + monitors.get(count).getHeight());
                 count++;
             }
-            ChoiceDialog dialogMonitorScreen = new ChoiceDialog(monitorList.get(0), monitorList);
+            ChoiceDialog<String> dialogMonitorScreen = new ChoiceDialog<>(monitorList.get(0), monitorList);
             dialogMonitorScreen.setTitle("Monitors");
             dialogMonitorScreen.setHeaderText("Select your choice");
 
@@ -228,7 +226,7 @@ public class FXMLController implements Initializable {
     }
 
     private static ArrayList<Node> getAllNodes(Parent root) {
-        ArrayList<Node> nodes = new ArrayList<Node>();
+        ArrayList<Node> nodes = new ArrayList<>();
         addAllDescendents(root, nodes);
         return nodes;
     }
@@ -263,11 +261,11 @@ public class FXMLController implements Initializable {
         stage.setHeight(SCREEN_HEIGHT);
         ArrayList<Node> nodes = getAllNodes(gamesList);
         double highest = 0;
-        for (int i = 0; i < nodes.size(); i++) {
-            if (nodes.get(i) instanceof VBox) {
-                for (int j = 0; j < ((VBox) nodes.get(i)).getChildren().size(); j++) {
-                    if (((VBox) nodes.get(i)).getChildren().get(j) instanceof Button) {
-                        Button btn = ((Button) ((VBox) nodes.get(i)).getChildren().get(j));
+        for (Node node : nodes) {
+            if (node instanceof VBox) {
+                for (int j = 0; j < ((VBox) node).getChildren().size(); j++) {
+                    if (((VBox) node).getChildren().get(j) instanceof Button) {
+                        Button btn = ((Button) ((VBox) node).getChildren().get(j));
                         double width = btn.getWidth();
                         if (width > highest) {
                             highest = width;
@@ -289,12 +287,9 @@ public class FXMLController implements Initializable {
         fade.setCycleCount(1);
         fade.setNode(expandButton);
         fade.play();
-        fade.onFinishedProperty().set(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                expandButton.setVisible(false);
-                expandButton.setOpacity(1);
-            }
+        fade.onFinishedProperty().set(event -> {
+            expandButton.setVisible(false);
+            expandButton.setOpacity(1);
         });
         TranslateTransition trans = new TranslateTransition(Duration.seconds(1), expandedScene);
         trans.setFromX(stage.getWidth() / 2 * -1);
@@ -321,51 +316,45 @@ public class FXMLController implements Initializable {
                 gameButton.setText(game.getGameText());
                 gameButton.getStyleClass().add(TRANSPARENT_CLASS);
                 gameButton.setAlignment(Pos.BASELINE_LEFT);
-                gameButton.addEventHandler(MouseEvent.MOUSE_ENTERED, new EventHandler<>() {
-                    @Override
-                    public void handle(MouseEvent e) {
-                        stage.setWidth(SCREEN_WIDTH + 18);
-                        gameImageViewer.setImage(null);
-                        gameImageViewer.setImage(new Image(game.getGameImage().toURI().toString(), SCREEN_WIDTH, SCREEN_HEIGHT, false, false));
-                        System.gc(); // fresh the ram, useful for new Image
-                        FadeTransition ft = new FadeTransition(Duration.millis(1000), gameImageViewer);
-                        ft.setFromValue(0.1);
-                        ft.setToValue(1);
-                        ft.play();
-                        container.getStyleClass().add(TRANSPARENT_CLASS);
-                        expandedScene.setAlignment(Pos.TOP_LEFT);
-                        gameButton.setCursor(javafx.scene.Cursor.HAND);
-                        expandedScene.getChildren().removeAll(gameImageViewer);
-                        expandedScene.getChildren().add(gameImageViewer);
-                        gamesList.toFront();
-                        gameImageViewer.toBack();
-                    }
+                gameButton.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> {
+                    stage.setWidth(SCREEN_WIDTH + 18);
+                    gameImageViewer.setImage(null);
+                    gameImageViewer.setImage(new Image(game.getGameImage().toURI().toString(), SCREEN_WIDTH, SCREEN_HEIGHT, false, false));
+                    System.gc(); // fresh the ram, useful for new Image
+                    FadeTransition ft = new FadeTransition(Duration.millis(1000), gameImageViewer);
+                    ft.setFromValue(0.1);
+                    ft.setToValue(1);
+                    ft.play();
+                    container.getStyleClass().add(TRANSPARENT_CLASS);
+                    expandedScene.setAlignment(Pos.TOP_LEFT);
+                    gameButton.setCursor(javafx.scene.Cursor.HAND);
+                    expandedScene.getChildren().removeAll(gameImageViewer);
+                    expandedScene.getChildren().add(gameImageViewer);
+                    gamesList.toFront();
+                    gameImageViewer.toBack();
                 });
-                gameButton.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<>() {
-                    @Override
-                    public void handle(MouseEvent e) {
-                        if (game.checkGameExist()) {
-                            if (game.run()) {
-                                if (game.isSteamGame()) {
-                                    SteamGameHandler.addRunningSteamGame(game.getSteamID());
-                                }
-                                collapseScreen();
-                            } else {
-                                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                                alert.setTitle("Game Launcher");
-                                alert.setHeaderText(null);
-                                alert.setContentText("Program Couldnt start");
-                                alert.showAndWait();
+                gameButton.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> {
+                    collapseScreen();
+                    if (game.checkGameExist()) {
+                        if (game.run()) {
+                            if (game.isSteamGame()) {
+                                SteamGameHandler.addRunningSteamGame(game.getSteamID());
                             }
                         } else {
                             Alert alert = new Alert(Alert.AlertType.INFORMATION);
                             alert.setTitle("Game Launcher");
                             alert.setHeaderText(null);
-                            alert.setContentText("Program Not Found: " + game.getGameText());
+                            alert.setContentText("Program Couldnt start");
                             alert.showAndWait();
                         }
-
+                    } else {
+                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                        alert.setTitle("Game Launcher");
+                        alert.setHeaderText(null);
+                        alert.setContentText("Program Not Found: " + game.getGameText());
+                        alert.showAndWait();
                     }
+
                 });
                 vbox.getChildren().add(gameButton);
                 tp.setContent(vbox);

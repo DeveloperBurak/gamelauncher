@@ -1,10 +1,11 @@
 package apps;
 
+import helper.Debugging;
 import system.OS;
 import helper.FileHelper;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.util.Arrays;
 import java.util.List;
 
 public class Game {
@@ -13,6 +14,7 @@ public class Game {
     private File gameImage;
     private boolean isSteamGame;
     private Integer steamAppID;
+    private String extension;
 
     private String getTargetExePath() {
         String extension = FileHelper.getFileExtension(this.gameExe);
@@ -20,16 +22,20 @@ public class Game {
             case "lnk":
                 return FileHelper.getRealExePath(this.gameExe);
             case "url":
-                List props = helper.Windows.readInternetShortcutProperties(this.gameExe);
-                for (Object prop : props) {
-                    if (prop.toString().contains("URL=steam")) {
-                        isSteamGame = true;
-                        String[] urlParts = prop.toString().split("/");
-                        steamAppID = Integer.parseInt(urlParts[urlParts.length - 1]);
+                List<String> props = helper.Windows.readInternetShortcutProperties(this.gameExe);
+                if (props != null) {
+                    for (Object prop : props) {
+                        if (prop.toString().contains("URL=steam")) {
+                            isSteamGame = true;
+                            String[] urlParts = prop.toString().split("/");
+                            steamAppID = Integer.parseInt(urlParts[urlParts.length - 1]);
+                        }
                     }
                 }
+
                 return extension;
             case "sh":
+            case "desktop":
                 return this.gameExe.getAbsolutePath();
             default:
 
@@ -77,34 +83,35 @@ public class Game {
         this.gameImage = gameImage;
         this.gameText = gameText;
         this.gameExe = gameExe;
+        this.extension = FileHelper.getFileExtension(this.gameExe);
         ui.Main.activity.addForbbidenApp(FileHelper.getFileNameWithExtension(FileHelper.strToFile(this.getTargetExePath())));
     }
 
     public boolean run() {
-        String op = OS.getOperatingSystem();
-        if (op.equals("Windows 10") || op.equals("Windows 7")) {
+        if (OS.isWindows()) {
             try {
                 ProcessBuilder pb = new ProcessBuilder("cmd", "/c", this.getGameExe().getAbsolutePath());
-//                                    Main.steamGameDetected = game.getIsSteamGame();
                 System.out.println("Program starting");
                 Process proc = pb.start();
             } catch (IOException ex) {
                 System.out.println(ex.getMessage());
             }
             return true;
-        } else if (op.equals("Linux")) {
+        } else if (OS.isLinux()) {
             try {
+                Runtime rt = Runtime.getRuntime();
                 String cmdPath = this.getTargetExePath();
-                cmdPath = cmdPath.replace("Game Launcher", "'Game Launcher'"); // shell compatible
-                String[] command = {"/bin/bash", "-c", cmdPath};
-                ProcessBuilder pb = new ProcessBuilder(command);
-                Process proc = pb.start();
+                cmdPath = cmdPath.replace(" ", "\\ "); // shell compatible
+                String[] command = {"/bin/sh", "-c", "`grep '^Exec' " + cmdPath + " | tail -1 | sed 's/^Exec=//' | sed 's/%.//' | sed 's/^\"//g' | sed 's/\" *$//g'` &\n"};
+                System.out.println(Arrays.toString(command));
+                Process proc = rt.exec(command);
+                Debugging.printStream(proc.getErrorStream());
                 return true;
             } catch (IOException IOex) {
                 System.out.println(IOex.getMessage());
             }
         } else {
-            System.out.println("Unsupported OS : " + op);
+            System.out.println("Not Valid OS");
         }
         return false;
     }

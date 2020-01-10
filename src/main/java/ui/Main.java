@@ -22,7 +22,7 @@ import java.util.prefs.BackingStoreException;
 
 public class Main extends Application {
     private static Stage stage;
-    private static ui.Monitor monitor;
+    public static ui.Monitor monitor;
     private static double SCREEN_WIDTH, SCREEN_HEIGHT; // these sizes of monitor
     private static double firstSceneWidth, firstSceneHeight; // these size of
     public static ProgramHandler activity = new ProgramHandler();
@@ -111,7 +111,7 @@ public class Main extends Application {
 
                             }
                             try {
-                                stage.setAlwaysOnTop(ProgramHandler.isLegalProgram(prevExe) && !SteamGameHandler.isStillRunningSteamGame());
+                                stage.setAlwaysOnTop(ProgramHandler.isLegalProgram(prevExe) && !SteamGameHandler.isStillRunningSteamGame() || OS.isLinux());
                             } catch (BackingStoreException | IOException | InterruptedException e) {
                                 e.printStackTrace();
                             }
